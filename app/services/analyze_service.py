@@ -44,7 +44,7 @@ class AnalyzeService:
         use_vlm = complexity_score > 5
 
         if use_vlm:
-            scene = self.vlm_service.generate_description(detections, ocr_result)
+            scene = self.vlm_service.generate_description(saved_path, detections, ocr_result)
         else:
             scene = self.guidance_service.generate_basic_response(detections, ocr_result)
 

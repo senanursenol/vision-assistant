@@ -6,7 +6,7 @@ class DetectionService:
         self.model = YOLO("yolov8n.pt")
 
     def detect(self, image_path: str) -> list:
-        results = self.model(image_path)
+        results = self.model(image_path, device=0)
 
         detections = []
 
