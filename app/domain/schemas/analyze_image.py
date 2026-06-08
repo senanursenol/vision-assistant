@@ -11,4 +11,6 @@ class AnalyzeImageResponse(BaseModel):
     scene: str
     used_vlm: bool
     score: float
+    audio: Dict
     message: str
+    

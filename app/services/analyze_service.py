@@ -3,7 +3,7 @@ from app.services.detection_service import DetectionService
 from app.services.ocr_service import OCRService
 from app.services.guidance_service import GuidanceService
 from app.services.vlm_service import VLMService
-
+from app.services.tts_service import TTSService
 
 class AnalyzeService:
     def __init__(self):
@@ -12,6 +12,7 @@ class AnalyzeService:
         self.ocr_service = OCRService()
         self.guidance_service = GuidanceService()
         self.vlm_service = VLMService()
+        self.tts_service = TTSService()
 
     def analyze_image(self, filename: str, content: bytes) -> dict:
         saved_path = self.file_service.save_file(filename, content)
@@ -48,6 +49,8 @@ class AnalyzeService:
         else:
             scene = self.guidance_service.generate_basic_response(detections, ocr_result)
 
+        audio = self.tts_service.text_to_speech(scene)
+
         return {
             "filename": filename,
             "content_type": "image",
@@ -57,5 +60,6 @@ class AnalyzeService:
             "scene": scene,
             "used_vlm": use_vlm,
             "score": round(complexity_score, 2),
+            "audio": audio,
             "message": "Image analiz edildi."
         }

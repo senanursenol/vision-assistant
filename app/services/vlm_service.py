@@ -29,10 +29,13 @@ class VLMService:
         print("Qwen VLM hazır.")
 
     def _clean_turkish_output(self, text: str) -> str:
-        # Çince/Japonca/Korece karakterleri temizle
-        text = re.sub(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]", "", text)
+        # Çince/Japonca/Korece + Kiril karakterlerini temizle
+        text = re.sub(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af\u0400-\u04FF]", "", text)
 
-        # Sık görülen İngilizce artıklarını temizle
+        # Gereksiz tırnakları temizle
+        text = text.replace('"', "").replace("'", "")
+
+        # Sık görülen yabancı artıklar
         replacements = {
             " visible": "",
             "visible": "",
@@ -45,7 +48,50 @@ class VLMService:
         # Gereksiz boşlukları temizle
         text = re.sub(r"\s+", " ", text).strip()
 
-        return text
+        # İstenmeyen başlangıçları temizle
+        unwanted_prefixes = [
+            "Merhaba!",
+            "Merhaba.",
+            "Merhaba",
+            "Ben bir asistanım.",
+            "Ben bir sesli asistanım.",
+            "Kendiniz bir sesi olarak,",
+        ]
+
+        for prefix in unwanted_prefixes:
+            if text.startswith(prefix):
+                text = text[len(prefix):].strip()
+
+        # Chatbot gibi konuşan cümleleri at
+        banned_phrases = [
+            "bana bildir",
+            "bana bildirin",
+            "benimle paylaş",
+            "size yardımcı olabilirim",
+            "asistanıyım",
+            "sesli asistan",
+        ]
+
+        sentences = [s.strip() for s in text.split(".") if s.strip()]
+
+        filtered_sentences = []
+        for sentence in sentences:
+            lower_sentence = sentence.lower()
+
+            if any(phrase in lower_sentence for phrase in banned_phrases):
+                continue
+
+            filtered_sentences.append(sentence)
+
+        # En fazla 3 cümle bırak
+        filtered_sentences = filtered_sentences[:3]
+
+        clean_text = ". ".join(filtered_sentences)
+
+        if clean_text:
+            clean_text += "."
+
+        return clean_text.strip()
 
     def generate_description(self, image_path: str, detections: list, ocr_result: dict) -> str:
         self._load_model()
@@ -91,21 +137,35 @@ class VLMService:
         if ocr_text:
             helper_context += f"OCR tarafından okunan metin: {ocr_text}. "
 
-        prompt = (
-            "Sen görme engelli bir kullanıcıya çevresini anlatan bir sesli asistan gibi konuşuyorsun. "
-            "Cevabın tamamen Türkçe olmalı ve kullanıcıyla doğrudan konuşur gibi olmalı. "
-            "Resmi teknik olarak açıklama; kullanıcının bulunduğu ortamı anlamasına ve güvenli hareket etmesine yardım et. "
-            "Sahneyi doğal bir şekilde anlat: şu an nerede olabiliriz, etrafta ne tür hareketlilik var, kullanıcı neye dikkat etmeli. "
-            "Eğer görünüyorsa yol, araç, insan, trafik ışığı, kaldırım, geçit, tabela veya yürünebilir alan gibi bilgileri belirt. "
-            "Görmediğin veya emin olmadığın şeyleri söyleme. "
-            "Kesin mesafe verme; 300 metre, 5 metre gibi sayısal uzaklıklar uydurma. Bunun yerine 'yakında', 'ileride', 'sağ tarafta', 'sol tarafta' gibi ifadeler kullan. "
-            "Maddeleme, numaralandırma ve başlık kullanma. "
-            "Cevap 3 veya 4 doğal cümleden oluşsun. "
-            "Örnek üslup: Şu an araçların geçtiği ve insanların yürüdüğü kalabalık bir yol kenarındasınız. "
-            "İleride trafik ışığı görünüyor, bu yüzden karşıya geçmeden önce ışığı ve araç hareketlerini kontrol etmeniz önemli. "
-            "Daha güvenli ilerlemek için kaldırım veya yaya yolu gibi ayrılmış bir alanı takip etmelisiniz."
-        )
+        prompt = """
+        You are an assistive visual navigation assistant for a blind or visually impaired user.
 
+        Your task:
+        Analyze the image and describe the surrounding environment in a way that helps the user understand where they are and move more safely.
+
+        Focus on:
+        - the type of environment
+        - nearby people, vehicles, roads, sidewalks, crossings, signs, traffic lights, or walkable areas if visible
+        - possible safety risks
+        - practical guidance for safe movement
+
+        Response style:
+        - Speak directly to the user, as if you are walking beside them.
+        - Do not describe yourself.
+        - Do not greet the user.
+        - Do not ask questions.
+        - Do not use bullet points, titles, numbering, or lists.
+        - Do not simply list objects.
+        - Do not invent exact distances, directions, or details that are not visible.
+        - Use natural, calm, and clear language.
+
+        Output requirements:
+        - Write only in Turkish.
+        - Write one short paragraph.
+        - Use 3 to 4 natural sentences.
+        - The answer should sound like spoken guidance, not a technical image caption.
+        """
+         
         messages = [
             {
                 "role": "user",
@@ -145,7 +205,7 @@ class VLMService:
                 **inputs,
                 max_new_tokens=180,
                 do_sample=False,
-                repetition_penalty=1.15,
+                repetition_penalty=1.1,
                 no_repeat_ngram_size=3
             )
 
