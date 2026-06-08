@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import health, analyze_image
+from app.api.routers import health, analyze_image, ask_image
 from app.core.config import settings
 
 
@@ -15,3 +15,4 @@ app.mount("/outputs", StaticFiles(directory="data/outputs"), name="outputs")
 
 app.include_router(health.router)
 app.include_router(analyze_image.router)
+app.include_router(ask_image.router)

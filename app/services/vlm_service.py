@@ -1,8 +1,9 @@
+import re
 import time
 import torch
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
-import re
+
 
 class VLMService:
     MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
@@ -35,7 +36,6 @@ class VLMService:
         # Gereksiz tırnakları temizle
         text = text.replace('"', "").replace("'", "")
 
-        # Sık görülen yabancı artıklar
         replacements = {
             " visible": "",
             "visible": "",
@@ -45,24 +45,20 @@ class VLMService:
         for old, new in replacements.items():
             text = text.replace(old, new)
 
-        # Gereksiz boşlukları temizle
         text = re.sub(r"\s+", " ", text).strip()
 
-        # İstenmeyen başlangıçları temizle
         unwanted_prefixes = [
             "Merhaba!",
             "Merhaba.",
             "Merhaba",
             "Ben bir asistanım.",
             "Ben bir sesli asistanım.",
-            "Kendiniz bir sesi olarak,",
         ]
 
         for prefix in unwanted_prefixes:
             if text.startswith(prefix):
                 text = text[len(prefix):].strip()
 
-        # Chatbot gibi konuşan cümleleri at
         banned_phrases = [
             "bana bildir",
             "bana bildirin",
@@ -70,6 +66,11 @@ class VLMService:
             "size yardımcı olabilirim",
             "asistanıyım",
             "sesli asistan",
+            "daha fazla detay",
+            "bilgi verebilmem için",
+            "size nasıl yardımcı",
+            "bana daha fazla",
+            "bu bilgileri paylaş",
         ]
 
         sentences = [s.strip() for s in text.split(".") if s.strip()]
@@ -83,8 +84,7 @@ class VLMService:
 
             filtered_sentences.append(sentence)
 
-        # En fazla 3 cümle bırak
-        filtered_sentences = filtered_sentences[:3]
+        filtered_sentences = filtered_sentences[:4]
 
         clean_text = ". ".join(filtered_sentences)
 
@@ -96,76 +96,75 @@ class VLMService:
     def generate_description(self, image_path: str, detections: list, ocr_result: dict) -> str:
         self._load_model()
 
-        label_tr_map = {
-            "person": "kişi",
-            "car": "araç",
-            "traffic light": "trafik ışığı",
-            "bus": "otobüs",
-            "truck": "kamyon",
-            "motorcycle": "motosiklet",
-            "bicycle": "bisiklet",
-            "chair": "sandalye",
-            "bench": "bank",
-            "cup": "bardak",
-            "bowl": "kase",
-            "dog": "köpek",
-            "cat": "kedi",
-        }
-
-        detected_labels = sorted(list(set([d["label"] for d in detections])))
-        detected_labels_tr = [
-            label_tr_map.get(label, label)
-            for label in detected_labels
-        ]
-
-        ocr_text = ocr_result.get("text", "").strip() if ocr_result else ""
-
-        helper_context = ""
-
-        if detected_labels_tr:
-            helper_context += f"Algılanan nesneler: {', '.join(detected_labels_tr)}. "
-
-
-        detected_labels = sorted(list(set([d["label"] for d in detections])))
-        ocr_text = ocr_result.get("text", "").strip() if ocr_result else ""
-
-        helper_context = ""
-
-        if detected_labels:
-            helper_context += f"YOLO tarafından algılanan nesneler: {', '.join(detected_labels)}. "
-
-        if ocr_text:
-            helper_context += f"OCR tarafından okunan metin: {ocr_text}. "
-
         prompt = """
-        You are an assistive visual navigation assistant for a blind or visually impaired user.
+You are an assistive visual navigation assistant for a blind or visually impaired user.
 
-        Your task:
-        Analyze the image and describe the surrounding environment in a way that helps the user understand where they are and move more safely.
+Your task:
+Analyze the image and describe the surrounding environment in a way that helps the user understand where they are and move more safely.
 
-        Focus on:
-        - the type of environment
-        - nearby people, vehicles, roads, sidewalks, crossings, signs, traffic lights, or walkable areas if visible
-        - possible safety risks
-        - practical guidance for safe movement
+Focus on:
+- the type of environment
+- nearby people, vehicles, roads, sidewalks, crossings, signs, traffic lights, or walkable areas if visible
+- possible safety risks
+- practical guidance for safe movement
 
-        Response style:
-        - Speak directly to the user, as if you are walking beside them.
-        - Do not describe yourself.
-        - Do not greet the user.
-        - Do not ask questions.
-        - Do not use bullet points, titles, numbering, or lists.
-        - Do not simply list objects.
-        - Do not invent exact distances, directions, or details that are not visible.
-        - Use natural, calm, and clear language.
+Response style:
+- Speak directly to the user, as if you are walking beside them.
+- Do not describe yourself.
+- Do not greet the user.
+- Do not ask questions.
+- Do not use bullet points, titles, numbering, or lists.
+- Do not simply list objects.
+- Do not invent exact distances, directions, or details that are not visible.
+- Use natural, calm, and clear language.
 
-        Output requirements:
-        - Write only in Turkish.
-        - Write one short paragraph.
-        - Use 3 to 4 natural sentences.
-        - The answer should sound like spoken guidance, not a technical image caption.
-        """
-         
+Output requirements:
+- Write only in Turkish.
+- Write one short paragraph.
+- Use 3 to 4 natural sentences.
+- The answer should sound like spoken guidance, not a technical image caption.
+"""
+
+        return self._run_qwen(image_path=image_path, prompt=prompt, max_new_tokens=180)
+
+    def answer_question(self, image_path: str, question: str, detections: list, ocr_result: dict) -> str:
+        self._load_model()
+
+        question = question.strip()
+        ocr_text = ocr_result.get("text", "").strip() if ocr_result else ""
+
+        prompt = f"""
+You are an assistive visual question-answering assistant for a blind or visually impaired user.
+
+The user asks a question about the image.
+
+User question:
+{question}
+
+Your task:
+Answer the user's question using only the visible information in the image.
+
+Important rules:
+- Answer only in Turkish.
+- Speak directly to the user.
+- Do not greet the user.
+- Do not introduce yourself.
+- Do not ask follow-up questions.
+- Do not use bullet points or lists.
+- Do not invent details that are not visible.
+- If the answer is uncertain, say it clearly.
+- If there is readable text in the image, use it when relevant.
+
+OCR text detected in the image:
+{ocr_text}
+
+Answer style:
+Give a short, clear, useful answer in 2 or 3 natural Turkish sentences.
+"""
+
+        return self._run_qwen(image_path=image_path, prompt=prompt, max_new_tokens=160)
+
+    def _run_qwen(self, image_path: str, prompt: str, max_new_tokens: int) -> str:
         messages = [
             {
                 "role": "user",
@@ -203,7 +202,7 @@ class VLMService:
         with torch.inference_mode():
             generated_ids = self.model.generate(
                 **inputs,
-                max_new_tokens=180,
+                max_new_tokens=max_new_tokens,
                 do_sample=False,
                 repetition_penalty=1.1,
                 no_repeat_ngram_size=3
