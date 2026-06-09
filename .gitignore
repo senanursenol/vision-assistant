@@ -18,4 +18,4 @@ yolov8n.pt
 
 .cache/
 huggingface/
-models/
+models/cloudflared
