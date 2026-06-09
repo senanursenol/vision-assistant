@@ -128,95 +128,95 @@ class VLMService:
         return self._run_qwen(image_path=image_path, prompt=prompt, max_new_tokens=180)
 
     def answer_question(self, image_path: str, question: str, detections: list, ocr_result: dict) -> str:
-    self._load_model()
+        self._load_model()
 
-    question = question.strip()
-    lower_question = question.lower()
-    ocr_text = ocr_result.get("text", "").strip() if ocr_result else ""
+        question = question.strip()
+        lower_question = question.lower()
+        ocr_text = ocr_result.get("text", "").strip() if ocr_result else ""
 
-    safety_keywords = [
-        "güvenli",
-        "karşıya geç",
-        "karşıdan karşıya",
-        "geçebilir miyim",
-        "yolu geç",
-        "yoldan geç",
-        "engel",
-        "dikkat et",
-        "tehlike",
-        "araç",
-        "trafik",
-    ]
+        safety_keywords = [
+            "güvenli",
+            "karşıya geç",
+            "karşıdan karşıya",
+            "geçebilir miyim",
+            "yolu geç",
+            "yoldan geç",
+            "engel",
+            "dikkat et",
+            "tehlike",
+            "araç",
+            "trafik",
+        ]
 
-    is_safety_question = any(keyword in lower_question for keyword in safety_keywords)
+        is_safety_question = any(keyword in lower_question for keyword in safety_keywords)
 
-    if is_safety_question:
-        prompt = f"""
-        You are an assistive visual question-answering assistant for a blind or visually impaired user.
+        if is_safety_question:
+            prompt = f"""
+            You are an assistive visual question-answering assistant for a blind or visually impaired user.
 
-        The user asks a safety-related question about the image:
-        {question}
+            The user asks a safety-related question about the image:
+            {question}
 
-        Analyze the image carefully and answer based only on what is visible.
+            Analyze the image carefully and answer based only on what is visible.
 
-        Your answer should:
-        - Be written only in Turkish.
-        - Speak directly to the user.
-        - Be specific to this image.
-        - Explain what is visible in the image.
-        - Mention relevant visual cues such as vehicles, pedestrians, road, crossing, traffic light, sidewalk, obstacles, or signs if they are visible.
-        - Avoid giving a definite safety guarantee.
-        - If safety cannot be fully determined from the image, say this clearly.
-        - Still give practical and cautious guidance that helps the user move more safely.
+            Your answer should:
+            - Be written only in Turkish.
+            - Speak directly to the user.
+            - Be specific to this image.
+            - Explain what is visible in the image.
+            - Mention relevant visual cues such as vehicles, pedestrians, road, crossing, traffic light, sidewalk, obstacles, or signs if they are visible.
+            - Avoid giving a definite safety guarantee.
+            - If safety cannot be fully determined from the image, say this clearly.
+            - Still give practical and cautious guidance that helps the user move more safely.
 
-        Do not:
-        - Use bullet points, numbering, titles, or lists.
-        - Give generic traffic advice unrelated to the image.
-        - Ask the user for more information.
-        - Invent exact distances, exact directions, or details that are not visible.
-        - Say something is definitely safe.
+            Do not:
+            - Use bullet points, numbering, titles, or lists.
+            - Give generic traffic advice unrelated to the image.
+            - Ask the user for more information.
+            - Invent exact distances, exact directions, or details that are not visible.
+            - Say something is definitely safe.
 
-        OCR text detected in the image:
-        {ocr_text}
+            OCR text detected in the image:
+            {ocr_text}
 
-        Output:
-        Write 2 or 3 natural Turkish sentences.
-        The answer should sound like spoken guidance for the user.
-        """
-            else:
-                prompt = f"""
-        You are an assistive visual question-answering assistant for a blind or visually impaired user.
+            Output:
+            Write 2 or 3 natural Turkish sentences.
+            The answer should sound like spoken guidance for the user.
+            """
+        else:
+            prompt = f"""
+            You are an assistive visual question-answering assistant for a blind or visually impaired user.
 
-        The user asks this question about the image:
-        {question}
+            The user asks this question about the image:
+            {question}
 
-        Answer the question based only on what is visible in the image.
+            Answer the question based only on what is visible in the image.
 
-        Your answer should:
-        - Be written only in Turkish.
-        - Speak directly to the user.
-        - Be clear, useful, and practical.
-        - Use readable text from OCR if it is relevant.
-        - Clearly say if the answer is uncertain.
+            Your answer should:
+            - Be written only in Turkish.
+            - Speak directly to the user.
+            - Be clear, useful, and practical.
+            - Use readable text from OCR if it is relevant.
+            - Clearly say if the answer is uncertain.
 
-        Do not:
-        - Use bullet points, numbering, titles, or lists.
-        - Ask follow-up questions.
-        - Invent details that are not visible.
-        - Give a technical image caption.
+            Do not:
+            - Use bullet points, numbering, titles, or lists.
+            - Ask follow-up questions.
+            - Invent details that are not visible.
+            - Give a technical image caption.
 
-        OCR text detected in the image:
-        {ocr_text}
+            OCR text detected in the image:
+            {ocr_text}
 
-        Output:
-        Write 2 or 3 natural Turkish sentences.
-        The answer should directly answer the user's question.
-        """
+            Output:
+            Write 2 or 3 natural Turkish sentences.
+            The answer should directly answer the user's question.
+            """
 
-    return self._run_qwen(
-        image_path=image_path,
-        prompt=prompt,
-        max_new_tokens=180
+        return self._run_qwen(
+            image_path=image_path,
+            prompt=prompt,
+            max_new_tokens=180
     )
     
     def _run_qwen(self, image_path: str, prompt: str, max_new_tokens: int) -> str:

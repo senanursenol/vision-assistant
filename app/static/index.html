@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vision Assistant</title>
+
+    <style>
+        :root {
+            --bg: #f6f8fb;
+            --panel: #ffffff;
+            --text: #111827;
+            --muted: #475569;
+            --primary: #1d4ed8;
+            --primary-soft: #dbeafe;
+            --record: #b91c1c;
+            --record-soft: #fee2e2;
+            --process: #92400e;
+            --process-soft: #fef3c7;
+            --success: #166534;
+            --success-soft: #dcfce7;
+            --border: #dbe3ef;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        header {
+            padding: 18px 22px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            margin: 6px 0 0 0;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .main {
+            padding: 22px;
+            display: grid;
+            place-items: center;
+        }
+
+        .interaction-card {
+            width: min(880px, 100%);
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+        .status {
+            border-radius: 22px;
+            padding: 22px;
+            background: var(--primary-soft);
+            color: #1e3a8a;
+            font-size: 22px;
+            line-height: 1.45;
+            font-weight: 700;
+            min-height: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .status.recording {
+            background: var(--record-soft);
+            color: var(--record);
+        }
+
+        .status.processing {
+            background: var(--process-soft);
+            color: var(--process);
+        }
+
+        .status.success {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .touch-zone {
+            margin-top: 22px;
+            border: 3px dashed #93c5fd;
+            border-radius: 28px;
+            min-height: 260px;
+            display: grid;
+            place-items: center;
+            padding: 28px;
+            text-align: center;
+            background: #f8fbff;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .touch-zone:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.18);
+        }
+
+        .touch-title {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .touch-help {
+            color: var(--muted);
+            font-size: 19px;
+            line-height: 1.6;
+            max-width: 680px;
+        }
+
+        .start-button,
+        .small-button {
+            border: none;
+            border-radius: 18px;
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .start-button {
+            width: 100%;
+            margin-top: 22px;
+            padding: 22px;
+            font-size: 22px;
+            background: var(--primary);
+        }
+
+        .small-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .small-button {
+            padding: 14px 18px;
+            font-size: 16px;
+            background: #334155;
+        }
+
+        .small-button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 22px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+
+        .text {
+            font-size: 18px;
+            line-height: 1.55;
+        }
+
+        .camera-preview {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            width: 180px;
+            height: 120px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid white;
+            box-shadow: var(--shadow);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        footer {
+            padding: 14px 22px;
+            color: var(--muted);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 680px) {
+            header {
+                padding: 16px;
+            }
+
+            .main {
+                padding: 14px;
+            }
+
+            .interaction-card {
+                padding: 20px;
+                border-radius: 22px;
+            }
+
+            .status {
+                font-size: 19px;
+            }
+
+            .touch-title {
+                font-size: 25px;
+            }
+
+            .touch-help {
+                font-size: 17px;
+            }
+
+            .camera-preview {
+                width: 120px;
+                height: 86px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <h1>Vision Assistant</h1>
+            <p class="subtitle">Ses odaklı görsel asistan prototipi</p>
+        </header>
+
+        <main class="main">
+            <section class="interaction-card">
+                <div id="statusBox" class="status" aria-live="assertive">
+                    Sistemi başlatmak için ekrana dokunun veya Sistemi Başlat düğmesine basın.
+                </div>
+
+                <button id="startButton" class="start-button">
+                    Sistemi Başlat
+                </button>
+
+                <div
+                    id="touchZone"
+                    class="touch-zone hidden"
+                    tabindex="0"
+                    role="button"
+                    aria-label="Sesli soru sormak için bu alana dokunun veya boşluk tuşuna basın."
+                >
+                    <div>
+                        <div id="touchTitle" class="touch-title">Dokun ve Konuş</div>
+                        <div id="touchHelp" class="touch-help">
+                            Sesli soru sormak için ekrana dokunun. Sorunuzu söyledikten sonra susarsanız kayıt otomatik durur.
+                            Klavye kullanıyorsanız boşluk tuşuna basabilirsiniz.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="small-actions">
+                    <button id="repeatButton" class="small-button" disabled>
+                        Cevabı Tekrar Oynat
+                    </button>
+
+                    <button id="helpButton" class="small-button">
+                        Sesli Yardım
+                    </button>
+                </div>
+
+                <section class="result" aria-label="Sistem çıktısı">
+                    <div class="result-box">
+                        <div class="label">Algılanan Soru</div>
+                        <div id="questionText" class="text">Henüz soru alınmadı.</div>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="label">Asistan Cevabı</div>
+                        <div id="answerText" class="text">Henüz cevap üretilmedi.</div>
+                        <audio id="answerAudio" controls></audio>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="label">İşlem Süresi</div>
+                        <div id="latencyText" class="text">Henüz ölçüm yok.</div>
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <footer>
+            Kısayollar: Boşluk = konuşmayı başlat/durdur, R = cevabı tekrar oynat, H = yardım, Escape = kaydı durdur.
+        </footer>
+    </div>
+
+    <div class="camera-preview" aria-hidden="true">
+        <video id="video" autoplay playsinline muted></video>
+    </div>
+
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <script>
+        const startButton = document.getElementById("startButton");
+        const touchZone = document.getElementById("touchZone");
+        const touchTitle = document.getElementById("touchTitle");
+        const touchHelp = document.getElementById("touchHelp");
+
+        const statusBox = document.getElementById("statusBox");
+        const questionText = document.getElementById("questionText");
+        const answerText = document.getElementById("answerText");
+        const answerAudio = document.getElementById("answerAudio");
+        const repeatButton = document.getElementById("repeatButton");
+        const helpButton = document.getElementById("helpButton");
+        const latencyText = document.getElementById("latencyText");
+
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+
+        let cameraStream = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordedAudioBlob = null;
+
+        let state = "not_started";
+        let lastAudioUrl = null;
+        let stopReason = "manual";
+
+        let audioContext = null;
+        let analyser = null;
+        let sourceNode = null;
+        let silenceInterval = null;
+        let silenceStartTime = null;
+
+        let recordingStartedAt = 0;
+        let requestStartedAt = 0;
+        let responseReceivedAt = 0;
+
+        const SILENCE_THRESHOLD = 0.045;
+        const SILENCE_DURATION_MS = 1400;
+        const MIN_RECORDING_MS = 1000;
+        const MAX_RECORDING_MS = 10000;
+
+        function speak(text) {
+            if (!("speechSynthesis" in window)) {
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "tr-TR";
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function vibrate(pattern = 80) {
+            if ("vibrate" in navigator) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        function isInteractiveElement(element) {
+            return element.closest("button, audio, input, textarea, select, a");
+        }
+
+        function setLatency(message) {
+            latencyText.textContent = message;
+        }
+
+        function setStatus(message, mode = "normal", shouldSpeak = true) {
+            statusBox.textContent = message;
+            statusBox.className = "status";
+
+            if (mode === "recording") {
+                statusBox.classList.add("recording");
+            }
+
+            if (mode === "processing") {
+                statusBox.classList.add("processing");
+            }
+
+            if (mode === "success") {
+                statusBox.classList.add("success");
+            }
+
+            if (shouldSpeak) {
+                speak(message);
+            }
+        }
+
+        function speakHelp() {
+            const helpText =
+                "Sistem hazır olduğunda ekrana bir kez dokunarak sesli soru kaydını başlatabilirsiniz. " +
+                "Sorunuzu söyledikten sonra sistem kısa bir sessizlik algılarsa kaydı otomatik durdurur. " +
+                "İsterseniz kaydı elle bitirmek için ekrana tekrar dokunabilirsiniz. " +
+                "Klavye kullanıyorsanız boşluk tuşu kaydı başlatır ve durdurur. " +
+                "R tuşu cevabı tekrar oynatır. Escape tuşu kaydı durdurur.";
+
+            setStatus(helpText, "normal", true);
+        }
+
+        function playTone(frequency = 880, duration = 140) {
+            return new Promise((resolve) => {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    const context = new AudioContext();
+                    const oscillator = context.createOscillator();
+                    const gain = context.createGain();
+
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = "sine";
+
+                    oscillator.connect(gain);
+                    gain.connect(context.destination);
+
+                    gain.gain.setValueAtTime(0.08, context.currentTime);
+                    oscillator.start();
+
+                    setTimeout(() => {
+                        oscillator.stop();
+                        context.close();
+                        resolve();
+                    }, duration);
+                } catch (error) {
+                    resolve();
+                }
+            });
+        }
+
+        function cleanupSilenceDetection() {
+            if (silenceInterval) {
+                clearInterval(silenceInterval);
+                silenceInterval = null;
+            }
+
+            silenceStartTime = null;
+
+            try {
+                if (sourceNode) {
+                    sourceNode.disconnect();
+                }
+            } catch (error) {}
+
+            try {
+                if (audioContext && audioContext.state !== "closed") {
+                    audioContext.close();
+                }
+            } catch (error) {}
+
+            audioContext = null;
+            analyser = null;
+            sourceNode = null;
+        }
+
+        function getAudioLevel() {
+            if (!analyser) {
+                return 0;
+            }
+
+            const dataArray = new Uint8Array(analyser.fftSize);
+            analyser.getByteTimeDomainData(dataArray);
+
+            let sumSquares = 0;
+
+            for (let i = 0; i < dataArray.length; i++) {
+                const normalized = (dataArray[i] - 128) / 128;
+                sumSquares += normalized * normalized;
+            }
+
+            return Math.sqrt(sumSquares / dataArray.length);
+        }
+
+        function startSilenceDetection(audioStream) {
+            cleanupSilenceDetection();
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+
+            sourceNode = audioContext.createMediaStreamSource(audioStream);
+            sourceNode.connect(analyser);
+
+            silenceInterval = setInterval(() => {
+                if (state !== "recording") {
+                    return;
+                }
+
+                const now = performance.now();
+                const elapsed = now - recordingStartedAt;
+                const level = getAudioLevel();
+
+                if (elapsed > MAX_RECORDING_MS) {
+                    stopRecording("max_time");
+                    return;
+                }
+
+                if (elapsed < MIN_RECORDING_MS) {
+                    return;
+                }
+
+                if (level < SILENCE_THRESHOLD) {
+                    if (!silenceStartTime) {
+                        silenceStartTime = now;
+                    }
+
+                    const silenceDuration = now - silenceStartTime;
+
+                    if (silenceDuration >= SILENCE_DURATION_MS) {
+                        stopRecording("auto_silence");
+                    }
+                } else {
+                    silenceStartTime = null;
+                }
+            }, 120);
+        }
+
+        async function startSystem() {
+            if (state !== "not_started") {
+                return;
+            }
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" },
+                    audio: false
+                });
+
+                video.srcObject = cameraStream;
+
+                state = "ready";
+
+                startButton.classList.add("hidden");
+                touchZone.classList.remove("hidden");
+                touchZone.focus();
+
+                setStatus(
+                    "Sistem hazır. Sesli soru sormak için ekrana dokunun veya boşluk tuşuna basın.",
+                    "success",
+                    true
+                );
+            } catch (error) {
+                console.error(error);
+                setStatus(
+                    "Kamera açılamadı. Tarayıcı izinlerini kontrol edin.",
+                    "normal",
+                    true
+                );
+            }
+        }
+
+        async function startRecording() {
+            if (state !== "ready" && state !== "result") {
+                return;
+            }
+
+            try {
+                state = "starting_record";
+                vibrate(70);
+
+                touchTitle.textContent = "Kayıt Başlıyor";
+                touchHelp.textContent = "Kısa sesten sonra sorunuzu söyleyin. Sustuktan sonra kayıt otomatik duracaktır.";
+
+                setStatus("Kayıt başlıyor. Kısa sesten sonra sorunuzu söyleyin.", "recording", true);
+
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                if ("speechSynthesis" in window) {
+                    window.speechSynthesis.cancel();
+                }
+
+                await playTone(900, 160);
+
+                const audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                audioChunks = [];
+                recordedAudioBlob = null;
+                recordingStartedAt = performance.now();
+                stopReason = "manual";
+
+                const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                    ? { mimeType: "audio/webm;codecs=opus" }
+                    : {};
+
+                mediaRecorder = new MediaRecorder(audioStream, options);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    cleanupSilenceDetection();
+
+                    recordedAudioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+                    audioStream.getTracks().forEach(track => track.stop());
+
+                    const recordingDuration = performance.now() - recordingStartedAt;
+
+                    await playTone(520, 120);
+
+                    state = "processing";
+
+                    touchTitle.textContent = "Analiz Ediliyor";
+                    touchHelp.textContent = "Görüntü ve ses yapay zeka sistemine gönderiliyor.";
+
+                    setLatency(
+                        "Kayıt süresi: " + (recordingDuration / 1000).toFixed(2) + " saniye. Backend cevabı bekleniyor."
+                    );
+
+                    if (stopReason === "auto_silence") {
+                        setStatus("Sessizlik algılandı. Görüntü ve ses analiz ediliyor.", "processing", true);
+                    } else if (stopReason === "max_time") {
+                        setStatus("Maksimum kayıt süresine ulaşıldı. Görüntü ve ses analiz ediliyor.", "processing", true);
+                    } else {
+                        setStatus("Kayıt alındı. Görüntü ve ses analiz ediliyor.", "processing", true);
+                    }
+
+                    await sendQuestion(recordingDuration);
+                };
+
+                mediaRecorder.start();
+                startSilenceDetection(audioStream);
+
+                state = "recording";
+
+                touchTitle.textContent = "Dinliyorum";
+                touchHelp.textContent = "Sorunuzu söyleyin. Sustuktan sonra kayıt otomatik durur. İsterseniz ekrana tekrar dokunarak elle durdurabilirsiniz.";
+
+                setStatus("Dinliyorum. Sorunuzu söyleyin.", "recording", false);
+            } catch (error) {
+                console.error(error);
+                cleanupSilenceDetection();
+                state = "ready";
+                setStatus("Mikrofon açılamadı. Tarayıcı izinlerini kontrol edin.", "normal", true);
+            }
+        }
+
+        function stopRecording(reason = "manual") {
+            if (state !== "recording") {
+                return;
+            }
+
+            stopReason = reason;
+            state = "stopping_record";
+            vibrate([50, 40, 50]);
+
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
+        }
+
+        function handleMainAction() {
+            if (state === "not_started") {
+                return;
+            }
+
+            if (state === "ready" || state === "result") {
+                startRecording();
+                return;
+            }
+
+            if (state === "recording") {
+                stopRecording("manual");
+                return;
+            }
+        }
+
+        async function captureImageBlob() {
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, width, height);
+
+            return new Promise((resolve) => {
+                canvas.toBlob(
+                    (blob) => resolve(blob),
+                    "image/jpeg",
+                    0.9
+                );
+            });
+        }
+
+        async function sendQuestion(recordingDurationMs) {
+            try {
+                requestStartedAt = performance.now();
+
+                const imageBlob = await captureImageBlob();
+
+                const formData = new FormData();
+                formData.append("image_file", imageBlob, "snapshot.jpg");
+                formData.append("audio_file", recordedAudioBlob, "question.webm");
+
+                const response = await fetch("/ask/voice", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("API hatası: " + response.status);
+                }
+
+                const data = await response.json();
+
+                responseReceivedAt = performance.now();
+
+                const question = data.question || "Soru algılanamadı.";
+                const answer = data.answer || "Cevap üretilemedi.";
+
+                const backendDurationMs = responseReceivedAt - requestStartedAt;
+                const totalDurationMs = responseReceivedAt - recordingStartedAt;
+
+                questionText.textContent = question;
+                answerText.textContent = answer;
+
+                setLatency(
+                    "Kayıt: " + (recordingDurationMs / 1000).toFixed(2) + " sn | " +
+                    "Backend: " + (backendDurationMs / 1000).toFixed(2) + " sn | " +
+                    "Toplam: " + (totalDurationMs / 1000).toFixed(2) + " sn"
+                );
+
+                state = "result";
+
+                touchTitle.textContent = "Cevap Oynatılıyor";
+                touchHelp.textContent = "Cevap bittikten sonra yeni soru sormak için ekrana dokunabilirsiniz.";
+
+                setStatus("Cevap hazır. Sesli cevap oynatılıyor.", "success", false);
+
+                if (data.audio && data.audio.audio_url) {
+                    lastAudioUrl = data.audio.audio_url;
+                    answerAudio.src = lastAudioUrl;
+                    repeatButton.disabled = false;
+
+                    try {
+                        await answerAudio.play();
+                    } catch (error) {
+                        console.warn("Otomatik ses oynatma engellendi:", error);
+                        speak(answer);
+                        state = "result";
+                    }
+                } else {
+                    speak(answer);
+                    state = "result";
+                }
+            } catch (error) {
+                console.error(error);
+
+                state = "ready";
+
+                touchTitle.textContent = "Tekrar Deneyin";
+                touchHelp.textContent = "Sesli soru sormak için ekrana dokunun.";
+
+                setStatus("Bir hata oluştu. Lütfen tekrar deneyin.", "normal", true);
+            }
+        }
+
+        async function replayAnswer() {
+            if (!lastAudioUrl) {
+                setStatus("Henüz oynatılacak cevap yok.", "normal", true);
+                return;
+            }
+
+            try {
+                answerAudio.currentTime = 0;
+                await answerAudio.play();
+            } catch (error) {
+                console.error(error);
+                speak(answerText.textContent);
+            }
+        }
+
+        startButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            startSystem();
+        });
+
+        touchZone.addEventListener("click", (event) => {
+            event.stopPropagation();
+            handleMainAction();
+        });
+
+        repeatButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            replayAnswer();
+        });
+
+        helpButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            speakHelp();
+        });
+
+        document.body.addEventListener("click", (event) => {
+            if (isInteractiveElement(event.target)) {
+                return;
+            }
+
+            if (state === "not_started") {
+                startSystem();
+                return;
+            }
+
+            handleMainAction();
+        });
+
+        answerAudio.addEventListener("play", () => {
+            if (state === "result") {
+                state = "answer_playing";
+            }
+        });
+
+        answerAudio.addEventListener("ended", () => {
+            if (state === "answer_playing" || state === "result") {
+                state = "result";
+
+                touchTitle.textContent = "Yeni Soru İçin Dokun";
+                touchHelp.textContent = "Yeni bir soru sormak için ekrana dokunun veya boşluk tuşuna basın.";
+
+                setStatus(
+                    "Cevap bitti. Yeni soru sormak için ekrana dokunun veya boşluk tuşuna basın.",
+                    "success",
+                    true
+                );
+
+                touchZone.focus();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const key = event.key.toLowerCase();
+
+            if (event.code === "Space") {
+                event.preventDefault();
+
+                if (state === "not_started") {
+                    startSystem();
+                } else {
+                    handleMainAction();
+                }
+            }
+
+            if (key === "r") {
+                replayAnswer();
+            }
+
+            if (key === "h") {
+                speakHelp();
+            }
+
+            if (key === "escape") {
+                if (state === "recording") {
+                    stopRecording("manual");
+                }
+            }
+        });
+    </script>
+</body>
+</html>
