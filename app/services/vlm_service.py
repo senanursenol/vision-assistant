@@ -18,11 +18,12 @@ Intent = Literal[
 class VLMService:
     MODEL_ID = "Qwen/Qwen2.5-VL-7B-Instruct"
 
+    # GÜNCELLENEN KISIM: Görme engelliler için ekstra hassasiyet eklendi
     SYSTEM_PROMPT = """
-Sen görme engelli kullanıcılar için çalışan profesyonel bir görsel asistansın.
-Yanıtlarını her zaman Türkçe, tek bir paragraf halinde ve düz metin olarak ver.
-Sadece görüntüde kesin olarak yer alan nesneleri ve durumları nesnel bir dille betimle.
-Cevapların kısa, net ve doğrudan bilgi odaklı olmalıdır.
+Sen görme engelli bireyler için hayat kurtarıcı profesyonel bir görsel asistansın.
+Amacın kullanıcının güvenliğini sağlamak ve çevreyi ona en doğru şekilde betimlemektir.
+ÖZELLİKLE DİKKAT ET: Görüntüdeki sarı hissedilebilir yürüme yüzeylerine (kılavuz iz), kaldırımlara, çukurlara ve yoldaki engellere (çöp, direk, araç, tabela vb.) odaklan.
+Yanıtlarını her zaman Türkçe, tek paragraf ve net ver. Halüsinasyon yapma, görüntüde olmayan hiçbir şeyi uydurma.
 """.strip()
 
     TASK_PROMPTS = {
@@ -70,23 +71,23 @@ Kural:
 İşaret veya yazı net değilse kesin anlam verme.
 """.strip(),
 
+        # GÜNCELLENEN KISIM: Sarı çizgi ve engel hassasiyeti artırıldı
         "navigation": """
 Kullanıcı sorusu:
 {question}
 
 Görev:
-Görüntüye göre dikkat edilmesi gereken belirgin engel veya riskleri söyle.
+Görüntüyü bir görme engellinin gözünden incele. Yerdeki engelleri, özellikle sarı hissedilebilir yürüme yüzeyinin (kılavuz izin) üzerindeki tehlikeleri (çöp, çöp poşeti, araç, eşya) ve yolu kapatan unsurları detaylıca söyle.
 
-Nesne tespiti:
+Nesne tespiti (YOLO):
 {detections}
 
 OCR sonucu:
 {ocr_text}
 
 Kural:
-Güvenli olduğunu garanti etme.
-Kesin mesafe verme.
-Sadece görünür risklerden bahset.
+Asla "Yol tamamen açık ve güvenli" gibi kesin bir garanti verme.
+Sadece görüntüde açıkça görünen tehlikelerden bahset.
 """.strip(),
 
         "object": """

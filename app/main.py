@@ -4,9 +4,19 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from contextlib import asynccontextmanager
+from app.services.vlm_service import vlm_service
+
 from app.api.routers import health, analyze_image, ask_image, ask_voice
 from app.core.config import settings
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 Sistem başlatılıyor: VLM Modeli GPU'ya yükleniyor (Lütfen bekleyin)...")
+    vlm_service._load_model()
+    print("✅ Model başarıyla VRAM'e yüklendi! Sistem isteklere hazır.")
+    yield
+    print("🛑 Sistem kapanıyor. Kaynaklar serbest bırakılıyor...")
 
 Path("data/outputs").mkdir(parents=True, exist_ok=True)
 Path("app/static").mkdir(parents=True, exist_ok=True)

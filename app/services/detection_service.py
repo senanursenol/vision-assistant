@@ -1,12 +1,15 @@
 from ultralytics import YOLO
-
+import torch
 
 class DetectionService:
     def __init__(self):
         self.model = YOLO("yolov8n.pt")
 
     def detect(self, image_path: str) -> list:
-        results = self.model(image_path, device=0)
+        device = 0 if torch.cuda.is_available() else "cpu"
+        self.model = YOLO("yolov8x.pt")
+        
+        results = self.model(image_path, device=device)
 
         detections = []
 

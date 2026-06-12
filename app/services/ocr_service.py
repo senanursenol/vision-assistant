@@ -5,7 +5,7 @@ import cv2
 class OCRService:
     def __init__(self):
         # Türkçe + İngilizce
-        self.reader = easyocr.Reader(['tr', 'en'], gpu=False)
+        self.reader = easyocr.Reader(['tr', 'en'], gpu=True)
 
     def extract_text(self, image_path: str) -> dict:
         # 1) image oku
