@@ -2,548 +2,400 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Vision Assistant</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         :root {
-            --bg-cream: #fff8e7;
-            --bg-mint: #dff7df;
-            --bg-pink: #ffe1ec;
-            --bg-yellow: #fff2b8;
-
-            --panel: rgba(255, 255, 255, 0.88);
-            --panel-solid: #ffffff;
-
-            --text: #2f2a1f;
-            --muted: #7a725f;
-
-            --green: #4caf50;
-            --green-dark: #2f7d32;
-            --green-soft: #e4f8dd;
-
-            --yellow: #f6c945;
-            --yellow-dark: #a96d00;
-            --yellow-soft: #fff5c8;
-
-            --pink: #f4729b;
-            --pink-dark: #be315f;
-            --pink-soft: #ffe0ec;
-
-            --orange: #f59e42;
-            --orange-soft: #ffe6c8;
-
-            --red: #e04f5f;
-            --red-soft: #ffe0e4;
-
-            --border: rgba(122, 114, 95, 0.18);
-            --shadow: 0 26px 70px rgba(89, 66, 38, 0.16);
-            --shadow-soft: 0 14px 34px rgba(76, 175, 80, 0.16);
-
-            --radius-xl: 34px;
-            --radius-lg: 26px;
-            --radius-md: 20px;
+            /* Premium Canlı Renk Paleti */
+            --primary-grad: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            --success-grad: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            --recording-grad: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            --warning-grad: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            
+            --text-dark: #0f172a;
+            --text-muted: #475569;
+            
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            
+            --radius-xl: 36px;
+            --radius-lg: 24px;
+            --radius-md: 16px;
         }
 
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
+        /* Büyüleyici Hareketli Arka Plan */
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--text);
-            background:
-                radial-gradient(circle at 12% 10%, rgba(255, 225, 236, 0.95), transparent 34%),
-                radial-gradient(circle at 88% 18%, rgba(255, 242, 184, 0.92), transparent 32%),
-                radial-gradient(circle at 18% 88%, rgba(223, 247, 223, 0.92), transparent 38%),
-                linear-gradient(135deg, #fffaf0 0%, #fff3d8 38%, #ffe4ef 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* Inter Fontu Aktif */
+            color: var(--text-dark);
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.12), transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.12), transparent 30%),
+                radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.12), transparent 30%),
+                radial-gradient(circle at 80% 90%, rgba(245, 158, 11, 0.08), transparent 30%);
+            background-attachment: fixed;
+            animation: bgShift 20s ease-in-out infinite alternate;
         }
 
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0.36;
-            background-image:
-                radial-gradient(circle, rgba(76, 175, 80, 0.16) 2px, transparent 2px),
-                radial-gradient(circle, rgba(244, 114, 155, 0.16) 2px, transparent 2px);
-            background-position: 0 0, 22px 22px;
-            background-size: 44px 44px;
-        }
-
-        body::after {
-            content: "✿";
-            position: fixed;
-            right: 34px;
-            top: 78px;
-            font-size: 86px;
-            color: rgba(244, 114, 155, 0.22);
-            pointer-events: none;
-            transform: rotate(12deg);
+        @keyframes bgShift {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
         }
 
         .app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 32px 24px;
             position: relative;
             z-index: 1;
-            min-height: 100vh;
-            display: grid;
-            grid-template-rows: auto 1fr auto;
         }
 
         header {
-            padding: 24px 30px;
-            background: rgba(255, 255, 255, 0.58);
-            backdrop-filter: blur(18px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+            text-align: center;
+            padding: 10px 0 35px;
         }
 
         h1 {
             margin: 0;
-            font-size: 32px;
-            letter-spacing: -0.045em;
-            color: #2f4f2f;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        h1::before {
-            content: "🌿";
-            font-size: 28px;
+            font-size: 40px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            background: var(--primary-grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
 
         .subtitle {
-            margin: 8px 0 0 0;
-            color: var(--muted);
-            font-size: 16px;
+            margin: 10px 0 0;
+            color: var(--text-muted);
+            font-size: 15px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
         }
 
         .main {
-            padding: 30px;
-            display: grid;
-            place-items: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        .interaction-card {
-            width: min(960px, 100%);
-            background: var(--panel);
+        /* Buzlu Cam (Glassmorphism) Efektli Kutular */
+        .glass-panel {
+            background: var(--glass-bg);
             backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            box-shadow: var(--shadow);
-            padding: 32px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .status {
+            padding: 24px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            text-align: center;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+            border-radius: var(--radius-lg);
+            line-height: 1.5;
+        }
+
+        .status.recording { color: #fff; background: var(--recording-grad); border-color: transparent; box-shadow: 0 10px 30px rgba(255, 8, 68, 0.3); }
+        .status.processing { color: #fff; background: var(--warning-grad); border-color: transparent; box-shadow: 0 10px 30px rgba(246, 211, 101, 0.3); }
+        .status.success { color: #fff; background: var(--success-grad); border-color: transparent; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+
+        /* Devasa, Göz Alıcı Dokunmatik Alan */
+        .touch-zone {
+            flex-grow: 1;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
             position: relative;
             overflow: hidden;
         }
 
-        .interaction-card::before {
-            content: "";
-            position: absolute;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            left: -90px;
-            top: -90px;
-            background: rgba(255, 242, 184, 0.65);
-            pointer-events: none;
-        }
-
-        .interaction-card::after {
-            content: "";
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            right: -70px;
-            bottom: -70px;
-            background: rgba(223, 247, 223, 0.78);
-            pointer-events: none;
-        }
-
-        .status,
-        .touch-zone,
-        .small-actions,
-        .result,
-        .start-button {
-            position: relative;
-            z-index: 1;
-        }
-
-        .status {
-            border-radius: var(--radius-lg);
-            padding: 24px 28px;
-            background: linear-gradient(135deg, #e7f9dd, #fff4bb);
-            color: #315c27;
-            font-size: 22px;
-            line-height: 1.45;
-            font-weight: 900;
-            min-height: 104px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border: 2px solid rgba(76, 175, 80, 0.18);
-            box-shadow: var(--shadow-soft);
-        }
-
-        .status.recording {
-            background: linear-gradient(135deg, #ffe0ec, #ffd0dc);
-            color: var(--pink-dark);
-            border-color: rgba(244, 114, 155, 0.28);
-            animation: recordingPulse 1.2s infinite;
-        }
-
-        .status.processing {
-            background: linear-gradient(135deg, #fff5c8, #ffe2a8);
-            color: var(--yellow-dark);
-            border-color: rgba(246, 201, 69, 0.35);
-        }
-
-        .status.success {
-            background: linear-gradient(135deg, #dff7df, #f2ffd8);
-            color: var(--green-dark);
-            border-color: rgba(76, 175, 80, 0.28);
-        }
-
-        .touch-zone {
-            margin-top: 26px;
-            border: 3px solid rgba(76, 175, 80, 0.25);
-            border-radius: var(--radius-xl);
-            min-height: 285px;
-            display: grid;
-            place-items: center;
-            padding: 36px;
-            text-align: center;
-            cursor: pointer;
-            outline: none;
-            background:
-                radial-gradient(circle at top left, rgba(255, 224, 236, 0.85), transparent 38%),
-                radial-gradient(circle at bottom right, rgba(223, 247, 223, 0.95), transparent 38%),
-                linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 231, 0.94));
-            box-shadow:
-                inset 0 0 0 1px rgba(255, 255, 255, 0.85),
-                0 18px 44px rgba(89, 66, 38, 0.10);
-            transition: 0.18s ease;
-        }
-
-        .touch-zone::before {
-            content: "🎙️";
-            display: block;
-            font-size: 48px;
-            margin-bottom: 14px;
-            filter: drop-shadow(0 8px 12px rgba(244, 114, 155, 0.18));
-        }
-
-        .touch-zone:hover {
-            transform: translateY(-3px);
-            border-color: rgba(244, 114, 155, 0.45);
-            box-shadow:
-                inset 0 0 0 1px rgba(255, 255, 255, 0.85),
-                0 24px 54px rgba(244, 114, 155, 0.16);
+        .touch-zone:focus-visible {
+            box-shadow: 0 0 0 6px #fff, 0 0 0 10px #6366f1, var(--glass-shadow);
         }
 
         .touch-zone:active {
-            transform: scale(0.994);
-        }
-
-        .touch-zone:focus {
-            border-color: var(--pink);
-            box-shadow:
-                0 0 0 7px rgba(244, 114, 155, 0.18),
-                0 22px 50px rgba(244, 114, 155, 0.12);
-        }
-
-        .touch-title {
-            font-size: 36px;
-            font-weight: 950;
-            letter-spacing: -0.045em;
-            color: #355f2e;
-            margin-bottom: 12px;
-        }
-
-        .touch-help {
-            color: var(--muted);
-            font-size: 19px;
-            line-height: 1.65;
-            max-width: 730px;
-            margin: 0 auto;
-            font-weight: 600;
-        }
-
-        .start-button,
-        .small-button {
-            border: none;
-            border-radius: var(--radius-md);
-            color: white;
-            font-weight: 950;
-            cursor: pointer;
-            transition: 0.18s ease;
-        }
-
-        .start-button {
-            width: 100%;
-            margin-top: 26px;
-            padding: 24px;
-            font-size: 23px;
-            background: linear-gradient(135deg, #4caf50, #88d66c);
-            box-shadow: 0 18px 38px rgba(76, 175, 80, 0.26);
-        }
-
-        .start-button::before {
-            content: "🌱 ";
-        }
-
-        .start-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 22px 48px rgba(76, 175, 80, 0.34);
-            filter: saturate(1.06);
-        }
-
-        .start-button:active,
-        .small-button:active {
             transform: scale(0.98);
         }
 
-        .small-actions {
+        /* Vektörel İkon İçin Zarif Yuvarlak */
+        .icon-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: var(--primary-grad);
             display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-top: 22px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.35);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: white;
+        }
+
+        .icon-circle i {
+            width: 52px;
+            height: 52px;
+            stroke-width: 2.5px;
+        }
+
+        .touch-zone.recording-active {
+            border-color: #ff0844;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .touch-zone.recording-active .icon-circle {
+            background: var(--recording-grad);
+            transform: scale(1.15);
+            animation: pulse-glow 2s infinite;
+            box-shadow: 0 15px 35px rgba(255, 8, 68, 0.4);
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 8, 68, 0.5); }
+            70% { box-shadow: 0 0 0 35px rgba(255, 8, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 8, 68, 0); }
+        }
+
+        .touch-title {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-dark);
+            margin-bottom: 14px;
+        }
+
+        .touch-help {
+            font-size: 17px;
+            color: var(--text-muted);
+            font-weight: 500;
+            line-height: 1.6;
+            max-width: 85%;
+        }
+
+        /* Muazzam Başlat Butonu */
+        .start-button {
+            background: var(--primary-grad);
+            color: #ffffff;
+            border: none;
+            padding: 30px;
+            font-family: 'Inter', sans-serif;
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            width: 100%;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .start-button i {
+            width: 64px;
+            height: 64px;
+            stroke-width: 2px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        }
+
+        .start-button-title {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .start-button-subtitle {
+            font-size: 17px;
+            font-weight: 500;
+            opacity: 0.9;
+            letter-spacing: 0.2px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px rgba(236, 72, 153, 0.4);
+        }
+
+        .start-button:active {
+            transform: scale(0.97);
+        }
+
+        /* Aksiyon Butonları */
+        .small-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
         }
 
         .small-button {
-            padding: 15px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            color: var(--text-dark);
+            border: 1px solid var(--glass-border);
+            padding: 22px 20px;
+            font-family: 'Inter', sans-serif;
             font-size: 16px;
-            color: #3b2a10;
-            background: linear-gradient(135deg, #fff0a8, #ffc66b);
-            box-shadow: 0 10px 22px rgba(246, 201, 69, 0.22);
-            border: 1px solid rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
         }
 
-        .small-button:hover {
-            transform: translateY(-1px);
-            filter: brightness(1.03) saturate(1.08);
+        .small-button i {
+            width: 22px;
+            height: 22px;
+            stroke-width: 2.5px;
+        }
+
+        .small-button:hover:not(:disabled) {
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
         }
 
         .small-button:disabled {
-            opacity: 0.48;
+            opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
-            filter: grayscale(0.25);
+            background: rgba(255, 255, 255, 0.4);
         }
 
-        #helpButton {
-            background: linear-gradient(135deg, #ffb3cf, #f4729b);
-            color: white;
-            box-shadow: 0 10px 22px rgba(244, 114, 155, 0.24);
-        }
+        #repeatButton { color: var(--text-dark); }
+        #helpButton { color: #6366f1; }
 
+        /* Sonuç Kutuları */
         .result {
-            margin-top: 26px;
-            display: grid;
-            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 16px;
         }
 
         .result-box {
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 231, 0.86));
-            border: 1px solid rgba(255, 255, 255, 0.88);
+            padding: 26px;
+            position: relative;
+            overflow: hidden;
             border-radius: var(--radius-lg);
-            padding: 19px;
-            box-shadow:
-                inset 0 0 0 1px rgba(255, 255, 255, 0.65),
-                0 10px 24px rgba(89, 66, 38, 0.07);
         }
 
-        .result-box:nth-child(1) {
-            border-left: 8px solid var(--green);
+        .result-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
         }
 
-        .result-box:nth-child(2) {
-            border-left: 8px solid var(--pink);
-        }
-
-        .result-box:nth-child(3) {
-            border-left: 8px solid var(--yellow);
-        }
+        .result-box:nth-child(1)::before { background: var(--primary-grad); }
+        .result-box:nth-child(2)::before { background: var(--success-grad); }
+        .result-box:nth-child(3)::before { background: #cbd5e1; }
 
         .label {
-            color: #6f664f;
             font-size: 13px;
-            font-weight: 950;
+            font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.075em;
-            margin-bottom: 9px;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
         }
 
         .text {
             font-size: 18px;
-            line-height: 1.62;
-            color: #2f2a1f;
-            font-weight: 600;
+            line-height: 1.6;
+            color: var(--text-dark);
+            font-weight: 500;
         }
 
+        /* Kamera Önizleme */
         .camera-preview {
             position: fixed;
-            right: 18px;
-            bottom: 18px;
-            width: 192px;
-            height: 130px;
-            border-radius: 24px;
+            right: 24px;
+            bottom: 24px;
+            width: 130px;
+            height: 90px;
+            border-radius: 14px;
             overflow: hidden;
-            background: #2f2a1f;
-            border: 4px solid rgba(255, 255, 255, 0.96);
-            box-shadow: 0 20px 48px rgba(89, 66, 38, 0.28);
-            z-index: 5;
+            border: 3px solid #fff;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            z-index: 50;
+            background: #000;
         }
 
-        .camera-preview::after {
-            content: "Kamera";
-            position: absolute;
-            left: 10px;
-            bottom: 10px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            background: rgba(76, 175, 80, 0.82);
-            color: white;
-            font-size: 12px;
-            font-weight: 900;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
         audio {
             width: 100%;
-            margin-top: 12px;
-            height: 44px;
-            accent-color: var(--pink);
+            margin-top: 16px;
+            border-radius: 12px;
+            outline: none;
         }
 
         footer {
-            position: relative;
-            z-index: 1;
-            padding: 15px 22px;
-            color: var(--muted);
-            font-size: 14px;
-            font-weight: 700;
+            margin-top: 40px;
+            padding-bottom: 120px;
             text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.6;
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
-        @keyframes recordingPulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(244, 114, 155, 0.28);
-            }
-            70% {
-                box-shadow: 0 0 0 14px rgba(244, 114, 155, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(244, 114, 155, 0);
-            }
-        }
-
-        @media (min-width: 820px) {
-            .result {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .result-box:last-child {
-                grid-column: 1 / -1;
-            }
-        }
-
-        @media (max-width: 680px) {
-            header {
-                padding: 16px;
-            }
-
-            h1 {
-                font-size: 26px;
-            }
-
-            .subtitle {
-                font-size: 15px;
-            }
-
-            .main {
-                padding: 14px;
-                place-items: start center;
-            }
-
-            .interaction-card {
-                padding: 20px;
-                border-radius: 26px;
-            }
-
-            .status {
-                font-size: 19px;
-                padding: 20px;
-                min-height: 92px;
-            }
-
-            .touch-zone {
-                min-height: 246px;
-                padding: 24px;
-            }
-
-            .touch-zone::before {
-                font-size: 42px;
-            }
-
-            .touch-title {
-                font-size: 29px;
-            }
-
-            .touch-help {
-                font-size: 17px;
-            }
-
-            .small-actions {
-                display: grid;
-                grid-template-columns: 1fr;
-            }
-
-            .small-button {
-                width: 100%;
-                min-height: 52px;
-            }
-
-            .camera-preview {
-                width: 128px;
-                height: 92px;
-                right: 12px;
-                bottom: 12px;
-                border-radius: 19px;
-            }
-
-            footer {
-                padding-bottom: 112px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation: none !important;
-                transition: none !important;
-                scroll-behavior: auto !important;
-            }
+        @media (max-width: 600px) {
+            .app { padding: 20px 16px; }
+            h1 { font-size: 34px; }
+            .touch-title { font-size: 28px; }
+            .touch-help { font-size: 16px; max-width: 100%; }
+            .small-actions { grid-template-columns: 1fr; }
+            .camera-preview { width: 100px; height: 70px; right: 16px; bottom: 16px; }
         }
     </style>
 </head>
@@ -552,82 +404,78 @@
     <div class="app">
         <header>
             <h1>Vision Assistant</h1>
-            <p class="subtitle">Ses odaklı görsel asistan prototipi</p>
+            <p class="subtitle">Yapay Zeka Destekli Gözünüz</p>
         </header>
 
         <main class="main">
-            <section class="interaction-card">
-                <div id="statusBox" class="status" aria-live="assertive">
-                    Sistemi başlatmak için ekrana dokunun veya Sistemi Başlat düğmesine basın.
-                </div>
+            <div id="statusBox" class="glass-panel status" aria-live="assertive">
+                Sistemi başlatmak için ekrana dokunun.
+            </div>
 
-                <button id="startButton" class="start-button">
-                    Sistemi Başlat
+            <button id="startButton" class="start-button">
+                <i data-lucide="sparkles"></i>
+                <div class="start-button-title">Sistemi Başlat</div>
+                <div class="start-button-subtitle">Kamerayı ve Sesli Asistanı Aktif Et</div>
+            </button>
+
+            <div id="touchZone" class="glass-panel touch-zone hidden" tabindex="0" role="button" aria-label="Sesli soru sormak için bu alana dokunun.">
+                <div class="icon-circle">
+                    <i data-lucide="mic"></i>
+                </div>
+                <div id="touchTitle" class="touch-title">Dokun ve Konuş</div>
+                <div id="touchHelp" class="touch-help">
+                    Soru sormak için dokunun. Sustuğunuzda kayıt otomatik durur.
+                </div>
+            </div>
+
+            <div class="small-actions">
+                <button id="repeatButton" class="small-button" disabled aria-label="Son cevabı tekrar oynat">
+                    <i data-lucide="refresh-cw"></i> Tekrar Dinle
                 </button>
 
-                <div
-                    id="touchZone"
-                    class="touch-zone hidden"
-                    tabindex="0"
-                    role="button"
-                    aria-label="Sesli soru sormak için bu alana dokunun veya boşluk tuşuna basın."
-                >
-                    <div>
-                        <div id="touchTitle" class="touch-title">Dokun ve Konuş</div>
-                        <div id="touchHelp" class="touch-help">
-                            Sesli soru sormak için ekrana dokunun. Sorunuzu söyledikten sonra susarsanız kayıt otomatik durur.
-                            Klavye kullanıyorsanız boşluk tuşuna basabilirsiniz.
-                        </div>
-                    </div>
+                <button id="helpButton" class="small-button" aria-label="Nasıl kullanılır">
+                    <i data-lucide="info"></i> Yardım Al
+                </button>
+            </div>
+
+            <section class="result" aria-label="Sistem çıktısı">
+                <div class="glass-panel result-box">
+                    <div class="label">Sizin Sorunuz</div>
+                    <div id="questionText" class="text">Henüz soru alınmadı.</div>
                 </div>
 
-                <div class="small-actions">
-                    <button id="repeatButton" class="small-button" disabled>
-                        Cevabı Tekrar Oynat
-                    </button>
-
-                    <button id="helpButton" class="small-button">
-                        Sesli Yardım
-                    </button>
+                <div class="glass-panel result-box">
+                    <div class="label">Asistanın Cevabı</div>
+                    <div id="answerText" class="text">Henüz cevap üretilmedi.</div>
+                    <audio id="answerAudio" controls></audio>
                 </div>
 
-                <section class="result" aria-label="Sistem çıktısı">
-                    <div class="result-box">
-                        <div class="label">Algılanan Soru</div>
-                        <div id="questionText" class="text">Henüz soru alınmadı.</div>
-                    </div>
-
-                    <div class="result-box">
-                        <div class="label">Asistan Cevabı</div>
-                        <div id="answerText" class="text">Henüz cevap üretilmedi.</div>
-                        <audio id="answerAudio" controls></audio>
-                    </div>
-
-                    <div class="result-box">
-                        <div class="label">İşlem Süresi</div>
-                        <div id="latencyText" class="text">Henüz ölçüm yok.</div>
-                    </div>
-                </section>
+                <div class="glass-panel result-box">
+                    <div class="label">İşlem Hızı</div>
+                    <div id="latencyText" class="text" style="color: var(--text-muted); font-size: 15px; font-weight: 500;">Sistem bekleniyor...</div>
+                </div>
             </section>
         </main>
 
         <footer>
-            Kısayollar: Boşluk = konuşmayı başlat/durdur, R = cevabı tekrar oynat, H = yardım, Escape = kaydı durdur.
+            <strong>Kısayollar:</strong><br>
+            [Boşluk] Kaydı Başlat/Bitir • [R] Tekrar Oynat • [H] Yardım
         </footer>
     </div>
 
     <div class="camera-preview" aria-hidden="true">
         <video id="video" autoplay playsinline muted></video>
     </div>
-
     <canvas id="canvas" class="hidden"></canvas>
 
     <script>
+        // Lucide İkonlarını Başlat
+        lucide.createIcons();
+
         const startButton = document.getElementById("startButton");
         const touchZone = document.getElementById("touchZone");
         const touchTitle = document.getElementById("touchTitle");
         const touchHelp = document.getElementById("touchHelp");
-
         const statusBox = document.getElementById("statusBox");
         const questionText = document.getElementById("questionText");
         const answerText = document.getElementById("answerText");
@@ -635,7 +483,6 @@
         const repeatButton = document.getElementById("repeatButton");
         const helpButton = document.getElementById("helpButton");
         const latencyText = document.getElementById("latencyText");
-
         const video = document.getElementById("video");
         const canvas = document.getElementById("canvas");
 
@@ -643,548 +490,231 @@
         let mediaRecorder = null;
         let audioChunks = [];
         let recordedAudioBlob = null;
-
         let state = "not_started";
         let lastAudioUrl = null;
         let stopReason = "manual";
 
-        let audioContext = null;
-        let analyser = null;
-        let sourceNode = null;
-        let silenceInterval = null;
-        let silenceStartTime = null;
+        let audioContext = null; let analyser = null; let sourceNode = null;
+        let silenceInterval = null; let silenceStartTime = null;
+        let recordingStartedAt = 0; let requestStartedAt = 0; let responseReceivedAt = 0;
 
-        let recordingStartedAt = 0;
-        let requestStartedAt = 0;
-        let responseReceivedAt = 0;
-
-        const SILENCE_THRESHOLD = 0.045;
-        const SILENCE_DURATION_MS = 1400;
-        const MIN_RECORDING_MS = 1000;
-        const MAX_RECORDING_MS = 10000;
+        const SILENCE_THRESHOLD = 0.045; const SILENCE_DURATION_MS = 1400;
+        const MIN_RECORDING_MS = 1000; const MAX_RECORDING_MS = 10000;
 
         function speak(text) {
-            if (!("speechSynthesis" in window)) {
-                return;
-            }
-
+            if (!("speechSynthesis" in window)) return;
             window.speechSynthesis.cancel();
-
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = "tr-TR";
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
             window.speechSynthesis.speak(utterance);
         }
 
-        function vibrate(pattern = 80) {
-            if ("vibrate" in navigator) {
-                navigator.vibrate(pattern);
-            }
-        }
-
-        function isInteractiveElement(element) {
-            return element.closest("button, audio, input, textarea, select, a");
-        }
-
-        function setLatency(message) {
-            latencyText.textContent = message;
-        }
+        function vibrate(pattern = 80) { if ("vibrate" in navigator) navigator.vibrate(pattern); }
+        function isInteractiveElement(el) { return el.closest("button, audio, input, textarea, select, a"); }
+        function setLatency(msg) { latencyText.textContent = msg; }
 
         function setStatus(message, mode = "normal", shouldSpeak = true) {
             statusBox.textContent = message;
-            statusBox.className = "status";
-
-            if (mode === "recording") {
-                statusBox.classList.add("recording");
-            }
-
-            if (mode === "processing") {
-                statusBox.classList.add("processing");
-            }
-
-            if (mode === "success") {
-                statusBox.classList.add("success");
-            }
-
-            if (shouldSpeak) {
-                speak(message);
-            }
+            statusBox.className = "glass-panel status";
+            if (mode === "recording") statusBox.classList.add("recording");
+            if (mode === "processing") statusBox.classList.add("processing");
+            if (mode === "success") statusBox.classList.add("success");
+            if (shouldSpeak) speak(message);
         }
 
         function speakHelp() {
-            const helpText =
-                "Sistem hazır olduğunda ekrana bir kez dokunarak sesli soru kaydını başlatabilirsiniz. " +
-                "Sorunuzu söyledikten sonra sistem kısa bir sessizlik algılarsa kaydı otomatik durdurur. " +
-                "İsterseniz kaydı elle bitirmek için ekrana tekrar dokunabilirsiniz. " +
-                "Klavye kullanıyorsanız boşluk tuşu kaydı başlatır ve durdurur. " +
-                "R tuşu cevabı tekrar oynatır. Escape tuşu kaydı durdurur.";
-
+            const helpText = "Sistem hazır olduğunda ekrana bir kez dokunarak sesli soru kaydını başlatabilirsiniz. Sorunuzu söyledikten sonra sistem kısa bir sessizlik algılarsa kaydı otomatik durdurur.";
             setStatus(helpText, "normal", true);
         }
 
         function playTone(frequency = 880, duration = 140) {
             return new Promise((resolve) => {
                 try {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    const context = new AudioContext();
-                    const oscillator = context.createOscillator();
-                    const gain = context.createGain();
-
-                    oscillator.frequency.value = frequency;
-                    oscillator.type = "sine";
-
-                    oscillator.connect(gain);
-                    gain.connect(context.destination);
-
-                    gain.gain.setValueAtTime(0.08, context.currentTime);
-                    oscillator.start();
-
-                    setTimeout(() => {
-                        oscillator.stop();
-                        context.close();
-                        resolve();
-                    }, duration);
-                } catch (error) {
-                    resolve();
-                }
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.value = frequency;
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    osc.start();
+                    setTimeout(() => { osc.stop(); ctx.close(); resolve(); }, duration);
+                } catch (e) { resolve(); }
             });
         }
 
         function cleanupSilenceDetection() {
-            if (silenceInterval) {
-                clearInterval(silenceInterval);
-                silenceInterval = null;
-            }
-
+            if (silenceInterval) { clearInterval(silenceInterval); silenceInterval = null; }
             silenceStartTime = null;
-
-            try {
-                if (sourceNode) {
-                    sourceNode.disconnect();
-                }
-            } catch (error) {}
-
-            try {
-                if (audioContext && audioContext.state !== "closed") {
-                    audioContext.close();
-                }
-            } catch (error) {}
-
-            audioContext = null;
-            analyser = null;
-            sourceNode = null;
+            try { if (sourceNode) sourceNode.disconnect(); } catch (e) {}
+            try { if (audioContext && audioContext.state !== "closed") audioContext.close(); } catch (e) {}
+            audioContext = null; analyser = null; sourceNode = null;
         }
 
         function getAudioLevel() {
-            if (!analyser) {
-                return 0;
-            }
-
+            if (!analyser) return 0;
             const dataArray = new Uint8Array(analyser.fftSize);
             analyser.getByteTimeDomainData(dataArray);
-
             let sumSquares = 0;
-
             for (let i = 0; i < dataArray.length; i++) {
                 const normalized = (dataArray[i] - 128) / 128;
                 sumSquares += normalized * normalized;
             }
-
             return Math.sqrt(sumSquares / dataArray.length);
         }
 
         function startSilenceDetection(audioStream) {
             cleanupSilenceDetection();
-
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContext();
-
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 2048;
-
             sourceNode = audioContext.createMediaStreamSource(audioStream);
             sourceNode.connect(analyser);
 
             silenceInterval = setInterval(() => {
-                if (state !== "recording") {
-                    return;
-                }
-
+                if (state !== "recording") return;
                 const now = performance.now();
                 const elapsed = now - recordingStartedAt;
                 const level = getAudioLevel();
 
-                if (elapsed > MAX_RECORDING_MS) {
-                    stopRecording("max_time");
-                    return;
-                }
-
-                if (elapsed < MIN_RECORDING_MS) {
-                    return;
-                }
+                if (elapsed > MAX_RECORDING_MS) { stopRecording("max_time"); return; }
+                if (elapsed < MIN_RECORDING_MS) return;
 
                 if (level < SILENCE_THRESHOLD) {
-                    if (!silenceStartTime) {
-                        silenceStartTime = now;
-                    }
-
-                    const silenceDuration = now - silenceStartTime;
-
-                    if (silenceDuration >= SILENCE_DURATION_MS) {
-                        stopRecording("auto_silence");
-                    }
-                } else {
-                    silenceStartTime = null;
-                }
+                    if (!silenceStartTime) silenceStartTime = now;
+                    if (now - silenceStartTime >= SILENCE_DURATION_MS) stopRecording("auto_silence");
+                } else { silenceStartTime = null; }
             }, 120);
         }
 
         async function startSystem() {
-            if (state !== "not_started") {
-                return;
-            }
-
+            if (state !== "not_started") return;
             try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" },
-                    audio: false
-                });
-
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
                 video.srcObject = cameraStream;
-
                 state = "ready";
-
                 startButton.classList.add("hidden");
                 touchZone.classList.remove("hidden");
                 touchZone.focus();
-
-                setStatus(
-                    "Sistem hazır. Sesli soru sormak için ekrana dokunun veya boşluk tuşuna basın.",
-                    "success",
-                    true
-                );
+                setStatus("Sistem hazır. Soru sormak için ekrana dokunun.", "success", true);
             } catch (error) {
-                console.error(error);
-                setStatus(
-                    "Kamera açılamadı. Tarayıcı izinlerini kontrol edin.",
-                    "normal",
-                    true
-                );
+                setStatus("Kamera açılamadı. İzinleri kontrol edin.", "normal", true);
             }
         }
 
         async function startRecording() {
-            if (state !== "ready" && state !== "result") {
-                return;
-            }
-
+            if (state !== "ready" && state !== "result") return;
             try {
-                state = "starting_record";
-                vibrate(70);
-
-                touchTitle.textContent = "Kayıt Başlıyor";
-                touchHelp.textContent = "Kısa sesten sonra sorunuzu söyleyin. Sustuktan sonra kayıt otomatik duracaktır.";
-
-                setStatus("Kayıt başlıyor. Kısa sesten sonra sorunuzu söyleyin.", "recording", true);
-
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                if ("speechSynthesis" in window) {
-                    window.speechSynthesis.cancel();
-                }
-
+                state = "starting_record"; vibrate(70);
+                touchTitle.textContent = "Kayıt Başlıyor"; touchHelp.textContent = "Kısa sesten sonra konuşun...";
+                setStatus("Kayıt başlıyor.", "recording", true);
+                
+                await new Promise(r => setTimeout(r, 800));
+                if ("speechSynthesis" in window) window.speechSynthesis.cancel();
                 await playTone(900, 160);
 
-                const audioStream = await navigator.mediaDevices.getUserMedia({
-                    audio: true
-                });
+                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioChunks = []; recordedAudioBlob = null;
+                recordingStartedAt = performance.now(); stopReason = "manual";
 
-                audioChunks = [];
-                recordedAudioBlob = null;
-                recordingStartedAt = performance.now();
-                stopReason = "manual";
-
-                const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-                    ? { mimeType: "audio/webm;codecs=opus" }
-                    : {};
-
-                mediaRecorder = new MediaRecorder(audioStream, options);
-
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data && event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
-
+                mediaRecorder = new MediaRecorder(audioStream, MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? { mimeType: "audio/webm;codecs=opus" } : {});
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = async () => {
                     cleanupSilenceDetection();
-
+                    touchZone.classList.remove("recording-active");
                     recordedAudioBlob = new Blob(audioChunks, { type: "audio/webm" });
+                    audioStream.getTracks().forEach(t => t.stop());
 
-                    audioStream.getTracks().forEach(track => track.stop());
-
-                    const recordingDuration = performance.now() - recordingStartedAt;
-
+                    const duration = performance.now() - recordingStartedAt;
                     await playTone(520, 120);
-
                     state = "processing";
-
-                    touchTitle.textContent = "Analiz Ediliyor";
-                    touchHelp.textContent = "Görüntü ve ses yapay zeka sistemine gönderiliyor.";
-
-                    setLatency(
-                        "Kayıt süresi: " + (recordingDuration / 1000).toFixed(2) + " saniye. Backend cevabı bekleniyor."
-                    );
-
-                    if (stopReason === "auto_silence") {
-                        setStatus("Sessizlik algılandı. Görüntü ve ses analiz ediliyor.", "processing", true);
-                    } else if (stopReason === "max_time") {
-                        setStatus("Maksimum kayıt süresine ulaşıldı. Görüntü ve ses analiz ediliyor.", "processing", true);
-                    } else {
-                        setStatus("Kayıt alındı. Görüntü ve ses analiz ediliyor.", "processing", true);
-                    }
-
-                    await sendQuestion(recordingDuration);
+                    touchTitle.textContent = "Analiz Ediliyor"; touchHelp.textContent = "Yapay zeka işliyor...";
+                    setStatus(stopReason === "auto_silence" ? "Sessizlik algılandı. Analiz ediliyor." : "Kayıt alındı. Analiz ediliyor.", "processing", true);
+                    await sendQuestion(duration);
                 };
 
-                mediaRecorder.start();
-                startSilenceDetection(audioStream);
-
-                state = "recording";
-
-                touchTitle.textContent = "Dinliyorum";
-                touchHelp.textContent = "Sorunuzu söyleyin. Sustuktan sonra kayıt otomatik durur. İsterseniz ekrana tekrar dokunarak elle durdurabilirsiniz.";
-
-                setStatus("Dinliyorum. Sorunuzu söyleyin.", "recording", false);
-            } catch (error) {
-                console.error(error);
-                cleanupSilenceDetection();
-                state = "ready";
-                setStatus("Mikrofon açılamadı. Tarayıcı izinlerini kontrol edin.", "normal", true);
+                mediaRecorder.start(); startSilenceDetection(audioStream);
+                state = "recording"; touchZone.classList.add("recording-active");
+                touchTitle.textContent = "Sizi Dinliyorum..."; touchHelp.textContent = "Sustuğunuzda otomatik duracaktır.";
+            } catch (e) {
+                cleanupSilenceDetection(); state = "ready"; setStatus("Mikrofon açılamadı.", "normal", true);
             }
         }
 
         function stopRecording(reason = "manual") {
-            if (state !== "recording") {
-                return;
-            }
-
-            stopReason = reason;
-            state = "stopping_record";
-            vibrate([50, 40, 50]);
-
-            if (mediaRecorder && mediaRecorder.state !== "inactive") {
-                mediaRecorder.stop();
-            }
+            if (state !== "recording") return;
+            stopReason = reason; state = "stopping_record"; vibrate([50, 40, 50]);
+            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
         }
 
         function handleMainAction() {
-            if (state === "not_started") {
-                return;
-            }
-
-            if (state === "ready" || state === "result") {
-                startRecording();
-                return;
-            }
-
-            if (state === "recording") {
-                stopRecording("manual");
-                return;
-            }
+            if (state === "not_started") return;
+            if (state === "ready" || state === "result") { startRecording(); return; }
+            if (state === "recording") { stopRecording("manual"); return; }
         }
 
         async function captureImageBlob() {
-            const width = video.videoWidth;
-            const height = video.videoHeight;
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const context = canvas.getContext("2d");
-            context.drawImage(video, 0, 0, width, height);
-
-            return new Promise((resolve) => {
-                canvas.toBlob(
-                    (blob) => resolve(blob),
-                    "image/jpeg",
-                    0.9
-                );
-            });
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            return new Promise(r => canvas.toBlob(r, "image/jpeg", 0.9));
         }
 
-        async function sendQuestion(recordingDurationMs) {
+        async function sendQuestion(durationMs) {
             try {
                 requestStartedAt = performance.now();
-
-                const imageBlob = await captureImageBlob();
-
                 const formData = new FormData();
-                formData.append("image_file", imageBlob, "snapshot.jpg");
+                formData.append("image_file", await captureImageBlob(), "snapshot.jpg");
                 formData.append("audio_file", recordedAudioBlob, "question.webm");
 
-                const response = await fetch("/ask/voice", {
-                    method: "POST",
-                    body: formData
-                });
+                const res = await fetch("/ask/voice", { method: "POST", body: formData });
+                if (!res.ok) throw new Error("API Hatası");
 
-                if (!response.ok) {
-                    throw new Error("API hatası: " + response.status);
-                }
-
-                const data = await response.json();
-
+                const data = await res.json();
                 responseReceivedAt = performance.now();
+                
+                questionText.textContent = data.question || "Soru algılanamadı.";
+                answerText.textContent = data.answer || "Cevap üretilemedi.";
+                setLatency(`Kayıt: ${(durationMs/1000).toFixed(1)}s | İşlem: ${((responseReceivedAt - requestStartedAt)/1000).toFixed(1)}s`);
 
-                const question = data.question || "Soru algılanamadı.";
-                const answer = data.answer || "Cevap üretilemedi.";
-
-                const backendDurationMs = responseReceivedAt - requestStartedAt;
-                const totalDurationMs = responseReceivedAt - recordingStartedAt;
-
-                questionText.textContent = question;
-                answerText.textContent = answer;
-
-                setLatency(
-                    "Kayıt: " + (recordingDurationMs / 1000).toFixed(2) + " sn | " +
-                    "Backend: " + (backendDurationMs / 1000).toFixed(2) + " sn | " +
-                    "Toplam: " + (totalDurationMs / 1000).toFixed(2) + " sn"
-                );
-
-                state = "result";
-
-                touchTitle.textContent = "Cevap Oynatılıyor";
-                touchHelp.textContent = "Cevap bittikten sonra yeni soru sormak için ekrana dokunabilirsiniz.";
-
-                setStatus("Cevap hazır. Sesli cevap oynatılıyor.", "success", false);
+                state = "result"; touchTitle.textContent = "Cevap Oynatılıyor"; touchHelp.textContent = "Yeni soru için tekrar dokunun.";
+                setStatus("Cevap hazır.", "success", false);
 
                 if (data.audio && data.audio.audio_url) {
-                    lastAudioUrl = data.audio.audio_url;
-                    answerAudio.src = lastAudioUrl;
-                    repeatButton.disabled = false;
-
-                    try {
-                        await answerAudio.play();
-                    } catch (error) {
-                        console.warn("Otomatik ses oynatma engellendi:", error);
-                        speak(answer);
-                        state = "result";
-                    }
-                } else {
-                    speak(answer);
-                    state = "result";
-                }
-            } catch (error) {
-                console.error(error);
-
-                state = "ready";
-
-                touchTitle.textContent = "Tekrar Deneyin";
-                touchHelp.textContent = "Sesli soru sormak için ekrana dokunun.";
-
-                setStatus("Bir hata oluştu. Lütfen tekrar deneyin.", "normal", true);
+                    lastAudioUrl = data.audio.audio_url; answerAudio.src = lastAudioUrl; repeatButton.disabled = false;
+                    try { await answerAudio.play(); } catch (e) { speak(data.answer); }
+                } else { speak(data.answer); }
+            } catch (e) {
+                state = "ready"; touchTitle.textContent = "Hata Oluştu"; touchHelp.textContent = "Tekrar denemek için dokunun.";
+                setStatus("Bir hata oluştu. Lütfen tekrar deneyin.", "recording", true);
             }
         }
 
         async function replayAnswer() {
-            if (!lastAudioUrl) {
-                setStatus("Henüz oynatılacak cevap yok.", "normal", true);
-                return;
-            }
-
-            try {
-                answerAudio.currentTime = 0;
-                await answerAudio.play();
-            } catch (error) {
-                console.error(error);
-                speak(answerText.textContent);
-            }
+            if (!lastAudioUrl) { setStatus("Oynatılacak cevap yok.", "normal", true); return; }
+            try { answerAudio.currentTime = 0; await answerAudio.play(); } catch (e) { speak(answerText.textContent); }
         }
 
-        startButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-            startSystem();
+        startButton.addEventListener("click", (e) => { e.stopPropagation(); startSystem(); });
+        touchZone.addEventListener("click", (e) => { e.stopPropagation(); handleMainAction(); });
+        repeatButton.addEventListener("click", (e) => { e.stopPropagation(); replayAnswer(); });
+        helpButton.addEventListener("click", (e) => { e.stopPropagation(); speakHelp(); });
+        document.body.addEventListener("click", (e) => {
+            if (isInteractiveElement(e.target)) return;
+            state === "not_started" ? startSystem() : handleMainAction();
         });
 
-        touchZone.addEventListener("click", (event) => {
-            event.stopPropagation();
-            handleMainAction();
-        });
-
-        repeatButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-            replayAnswer();
-        });
-
-        helpButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-            speakHelp();
-        });
-
-        document.body.addEventListener("click", (event) => {
-            if (isInteractiveElement(event.target)) {
-                return;
-            }
-
-            if (state === "not_started") {
-                startSystem();
-                return;
-            }
-
-            handleMainAction();
-        });
-
-        answerAudio.addEventListener("play", () => {
-            if (state === "result") {
-                state = "answer_playing";
-            }
-        });
-
+        answerAudio.addEventListener("play", () => { if (state === "result") state = "answer_playing"; });
         answerAudio.addEventListener("ended", () => {
             if (state === "answer_playing" || state === "result") {
-                state = "result";
-
-                touchTitle.textContent = "Yeni Soru İçin Dokun";
-                touchHelp.textContent = "Yeni bir soru sormak için ekrana dokunun veya boşluk tuşuna basın.";
-
-                setStatus(
-                    "Cevap bitti. Yeni soru sormak için ekrana dokunun veya boşluk tuşuna basın.",
-                    "success",
-                    true
-                );
-
-                touchZone.focus();
+                state = "result"; touchTitle.textContent = "Yeni Soru Sor"; touchHelp.textContent = "Yeni bir soru için dokunun.";
+                setStatus("Cevap bitti. Yeni soru sormak için dokunun.", "success", true); touchZone.focus();
             }
         });
 
-        document.addEventListener("keydown", (event) => {
-            const key = event.key.toLowerCase();
-
-            if (event.code === "Space") {
-                event.preventDefault();
-
-                if (state === "not_started") {
-                    startSystem();
-                } else {
-                    handleMainAction();
-                }
-            }
-
-            if (key === "r") {
-                replayAnswer();
-            }
-
-            if (key === "h") {
-                speakHelp();
-            }
-
-            if (key === "escape") {
-                if (state === "recording") {
-                    stopRecording("manual");
-                }
-            }
+        document.addEventListener("keydown", (e) => {
+            const key = e.key.toLowerCase();
+            if (e.code === "Space") { e.preventDefault(); state === "not_started" ? startSystem() : handleMainAction(); }
+            if (key === "r") replayAnswer(); if (key === "h") speakHelp();
+            if (key === "escape" && state === "recording") stopRecording("manual");
         });
     </script>
 </body>
