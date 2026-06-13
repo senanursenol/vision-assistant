@@ -37,5 +37,5 @@ app.include_router(analyze_image.router)
 app.include_router(ask_image.router)
 app.include_router(ask_voice.router)
 
-if _name_ == "_main_":
-    uvicorn.run("app:app", host=settings.APP_HOST, port=settings.APP_PORT)
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host=settings.APP_HOST, port=settings.APP_PORT)

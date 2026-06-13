@@ -18,108 +18,177 @@ Intent = Literal[
 class VLMService:
     MODEL_ID = "Qwen/Qwen2.5-VL-7B-Instruct"
 
-    # GÜNCELLENEN KISIM: Görme engelliler için ekstra hassasiyet eklendi
     SYSTEM_PROMPT = """
-Sen görme engelli bireyler için hayat kurtarıcı profesyonel bir görsel asistansın.
-Amacın kullanıcının güvenliğini sağlamak ve çevreyi ona en doğru şekilde betimlemektir.
-ÖZELLİKLE DİKKAT ET: Görüntüdeki sarı hissedilebilir yürüme yüzeylerine (kılavuz iz), kaldırımlara, çukurlara ve yoldaki engellere (çöp, direk, araç, tabela vb.) odaklan.
-Yanıtlarını her zaman Türkçe, tek paragraf ve net ver. Halüsinasyon yapma, görüntüde olmayan hiçbir şeyi uydurma.
-""".strip()
+        You are an expert, life-saving visual assistant dedicated to helping visually impaired individuals.
+        Your ultimate goal is to ensure the user's safety and provide accurate, objective descriptions of their environment.
+
+        CRITICAL INSTRUCTIONS:
+        1. SPATIAL AWARENESS: Always use clock directions (e.g., "at 12 o'clock", "on your immediate right") to describe where things are.
+        2. HAZARD FOCUS: Pay extreme attention to tactile paving, curbs, stairs, drop-offs, and ground-level obstacles.
+        3. STATE & CONDITION MANDATE (CRITICAL): You MUST explicitly describe the physical condition of every object. Is the cap open or closed? Is the container full or empty? Is the device on or off? Is the cable tangled? NEVER skip the physical state of an object.
+        4. NO HALLUCINATION: Never guess. If an object or text is blurry, explicitly state that it is unclear. Never describe things that are not clearly visible.
+        5. NO GENERIC WARNINGS: Never give category-level safety advice (e.g., "be careful with sharp objects in general"). Only mention a hazard if it is directly and clearly visible in the image.
+        6. COMPLETE SENTENCES: Never provide one-word answers. Speak like a professional human guide.
+        7. NO HEADERS OR NUMBERING: Never use numbered lists, bullet points, or section headers in your response. Write only in natural flowing prose.
+        8. OUTPUT LANGUAGE: Your internal reasoning is English, but your **FINAL RESPONSE MUST BE ENTIRELY IN TURKISH**. Use clear, natural, and concise Turkish.
+        9. PERSPECTIVE & TONE: ALWAYS address the user directly as "Siz" (You). NEVER say "Kullanıcının elinde...". Say "Elinde...". Speak conversationally and empathetically.
+    """.strip()
 
     TASK_PROMPTS = {
+
         "scene": """
-Kullanıcı sorusu:
-{question}
+Task:
+Describe the scene for a visually impaired person as a professional human guide would speak.
+Write in natural, flowing Turkish prose. DO NOT number your sentences or use section headers in your response.
 
-Görev:
-Görüntüdeki sahneyi nesnel şekilde anlat.
+Follow this internal priority order when composing your description (do NOT reveal these labels in output):
+- Start with the type of space the user is in.
+- Then describe the ground surface: is there tactile paving, wetness, cracks, curbs, or steps?
+- Then describe what is immediately around the user (0-3 meters), using clock directions.
+- Then describe what is visible further ahead (3-10 meters): people, vehicles, furniture, open doors.
+- Then give the overall layout: size, lighting, exits, major landmarks.
+- Finally, if any text or signage is visible, naturally mention what it says and where it is.
 
-Odak:
-Genel ortam, yol, bina, araç, insan, ışık, kapı, merdiven, tabela ve belirgin nesneler.
+Rules:
+- Mention moving threats (vehicles, people walking toward user) BEFORE static objects.
+- If YOLO detects a person or vehicle, include their clock direction and estimated distance.
+- NEVER say the area is clear or safe — only describe what is visible.
+- If the image is dark or blurry, state this as your very first sentence.
+- Write 4-6 natural Turkish sentences. No bullet points, no numbering, no headers.
+- OUTPUT LANGUAGE: STRICTLY TURKISH.
 
-Kural:
-Sadece görünür olanı söyle.
-Yol güvenli, geçiş açık, insan yok, başka yol yok gibi kesin çıkarımlar yapma.
-""".strip(),
+Example Good Response (Mimic this natural tone and "Siz" perspective):
+"Şu anda aydınlık ve orta büyüklükte bir salondasınız. Zemin düz ve temiz görünüyor. Saat 9 yönünde, solunuzda bir koltuk var ve üzerinde biri oturuyor. Saat 3 yönünde ise boş bir sandalye bulunuyor. Tam karşınızda içeriye güneş ışığı girmesini sağlayan açık bir pencere yer alıyor."
+
+User Question: {question}
+YOLO Detections: {detections}
+OCR Results: {ocr_text}
+        """.strip(),
 
         "text": """
-Kullanıcı sorusu:
-{question}
+Task:
+Read and interpret the text in the image for a visually impaired user.
+Write your response as natural flowing prose. DO NOT number your sentences or reveal your internal steps.
 
-Görev:
-Görüntüdeki okunabilir yazıyı söyle veya özetle.
+First, identify what kind of document this is (medicine box, receipt, book cover, screen, label, etc.) and state it naturally.
+Then, report the most critical information for that document type:
+  - Medicine box  → Drug name, dosage, and expiry date come first.
+  - Receipt/invoice → Total amount and date come first.
+  - Warning label → The warning text comes first.
+  - Book/magazine → Title, author, and subtitle come first.
+  - Other → The most prominent text block comes first.
+Finally, briefly mention where in the image the text appears (e.g., "At the top of the cover..." or "The bottom label reads...").
 
-OCR sonucu:
-{ocr_text}
+Rules:
+- Write in 2-4 natural Turkish sentences, NOT a numbered list.
+- DO NOT concatenate raw OCR output. Restructure it into readable sentences.
+- If a word is cut off or blurry, say it is unclear — do NOT guess.
+- If multiple languages appear, identify each and translate critical parts to Turkish.
+- OUTPUT LANGUAGE: STRICTLY TURKISH.
 
-Kural:
-Yazı net değilse bunu söyle.
-Eksik kelime uydurma.
-""".strip(),
+Example Good Response:
+"Bu bir market fişi. Toplam tutarın 125 TL olduğu yazıyor ve tarih kısmı dünün tarihini gösteriyor. Fişin en altındaki yazılar silik olduğu için net okunamıyor."
+
+User Question: {question}
+OCR Results: {ocr_text}
+        """.strip(),
 
         "sign": """
-Kullanıcı sorusu:
-{question}
+Task:
+Explain the sign, symbol, or written warning in the image to a visually impaired person.
+Write in natural, flowing Turkish prose. DO NOT use numbered lists or section headers in your response.
 
-Görev:
-Görüntüdeki tabela, işaret, sembol veya yazılı uyarıyı açıkla.
+Follow this internal priority order when composing your description (do NOT reveal these labels in output):
+- First classify the urgency: is this a danger sign (red/urgent), a caution sign (yellow/warning), an info sign (blue/green), or a direction sign? If it is a danger sign, make this the very first thing you say.
+- Then describe its physical appearance: shape, dominant color, size estimate, and clock position.
+- Then explain what the sign means in plain language.
+- Finally, tell the user what action they should take (e.g., "Stop and wait.", "Turn right to find the exit.", "Do not enter.").
 
-OCR sonucu:
-{ocr_text}
+Rules:
+- For danger or traffic signs, state the urgency FIRST before any physical description.
+- For ambiguous or partially visible symbols, do NOT invent meaning — say it is unclear.
+- If OCR text is present on the sign, integrate it naturally into the meaning explanation.
+- Write in 3-5 natural Turkish sentences. No bullet points, no numbering, no headers.
+- OUTPUT LANGUAGE: STRICTLY TURKISH.
 
-Kural:
-İşaret veya yazı net değilse kesin anlam verme.
-""".strip(),
+Example Good Response:
+"Saat 2 yönünde, sağ çaprazınızda direğe asılı mavi kare bir tabela var. Bu bir otopark işareti, yani bulunduğunuz alanın araç park yeri olduğunu gösteriyor."
 
-        # GÜNCELLENEN KISIM: Sarı çizgi ve engel hassasiyeti artırıldı
+User Question: {question}
+OCR Results: {ocr_text}
+YOLO Detections: {detections}
+        """.strip(),
+
         "navigation": """
-Kullanıcı sorusu:
-{question}
+Task:
+Analyze the user's immediate path for navigation and safety.
+Write in natural, flowing Turkish prose. DO NOT use numbered lists or section headers in your response.
 
-Görev:
-Görüntüyü bir görme engellinin gözünden incele. Yerdeki engelleri, özellikle sarı hissedilebilir yürüme yüzeyinin (kılavuz izin) üzerindeki tehlikeleri (çöp, çöp poşeti, araç, eşya) ve yolu kapatan unsurları detaylıca söyle.
+Focus on: ground-level obstacles, tactile paving (yellow lines), curbs, potholes, trash bags, poles, and parked or moving vehicles.
 
-Nesne tespiti (YOLO):
-{detections}
+Follow this internal priority order (do NOT reveal these labels in output):
+- If there is a moving threat (approaching vehicle, bike, or animal), start with a clear and urgent warning.
+- Then describe obstacles blocking the path with their exact clock direction and estimated distance.
+- Then describe the overall walkability of the path based on what is visible.
 
-OCR sonucu:
-{ocr_text}
+Rules:
+- NEVER guarantee that the path is 100% clear or safe — only state what is visible.
+- Write in 3-5 natural Turkish sentences. No bullet points, no numbering, no headers.
+- OUTPUT LANGUAGE: STRICTLY TURKISH.
 
-Kural:
-Asla "Yol tamamen açık ve güvenli" gibi kesin bir garanti verme.
-Sadece görüntüde açıkça görünen tehlikelerden bahset.
-""".strip(),
+Example Good Response:
+"DİKKAT: Saat 2 yönünden size doğru yaklaşan bir bisikletli var. Ayrıca tam önünüzde, saat 12 yönünde sarı kılavuz çizginin üzerine park edilmiş bir scooter yolu kapatıyor. Zeminin geri kalanı şu an için düz görünüyor."
+
+User Question: {question}
+YOLO Detections: {detections}
+OCR Results: {ocr_text}
+        """.strip(),
 
         "object": """
-Kullanıcı sorusu:
-{question}
+Task:
+Identify the specific object the user is asking about and describe it for someone who needs to handle it.
+Write in natural, flowing Turkish prose. DO NOT use numbered lists or section headers in your response.
 
-Görev:
-Görüntüde sorulan nesneyi tanımla.
+Follow this internal checklist when composing your description (do NOT reveal these labels in output):
+- What is this object? Use its simplest and most common Turkish name (e.g., "kaşık" not "çiğneme kaşığı", "klips" not "saç sabitleme aparatı"). State its name, color, and shape in one sentence.
+- What is its current physical state? Is it open or closed? Full or empty? On or off? NEVER skip this.
+- SAFETY (STRICTLY CONDITIONAL): Only mention a hazard if it is DIRECTLY AND CLEARLY VISIBLE in the image — such as a cracked screen, a visibly broken edge, or an open flame. NEVER give category-level warnings like "be careful with sharp objects". If no hazard is visible, skip this entirely. DO NOT mention safety at all.
+- Where is it in the frame? One short sentence (e.g., "It is held at close range, centered in view.").
+- HANDLING TIP (STRICTLY CONDITIONAL): Only include if the image shows something clearly actionable — such as a closed cap that needs opening, or a tangled cable. For everyday held objects (phones, cups, keys, hair clips, fruit), SKIP this entirely.
 
-Nesne tespiti:
-{detections}
+Rules:
+- NEVER invent details that are not clearly visible in the image.
+- NEVER describe body parts (hands, fingers) unless they are the main subject of the question.
+- Use the simplest and most common Turkish name for the object. NEVER create compound nouns.
+- If the object is partially out of frame or blurry, state this clearly.
+- Write in 2-4 natural Turkish sentences. No bullet points, no numbering, no headers.
+- OUTPUT LANGUAGE: STRICTLY TURKISH.
 
-Kural:
-Nesne net değilse net olmadığını söyle.
-""".strip(),
+Example Good Response:
+"Şu an elinizde kırmızı kapaklı, plastik bir su şişesi tutuyorsunuz. Şişenin kapağı sıkıca kapalı ve içi tamamen su dolu görünüyor. Üzerinde beyaz bir marka etiketi var."
+
+User Question: {question}
+YOLO Detections: {detections}
+        """.strip(),
 
         "general": """
-Kullanıcı sorusu:
-{question}
+Task:
+Answer the user's specific question based ONLY on the provided image.
+Write in natural, flowing Turkish prose. DO NOT use numbered lists or section headers in your response.
 
-Görev:
-Soruyu sadece görüntüye göre cevapla.
+Rules:
+- Do not add outside information or guess context not visible in the image.
+- Keep the answer direct and concise: 2-3 natural Turkish sentences.
+- No bullet points, no numbering, no headers.
+- OUTPUT LANGUAGE: STRICTLY TURKISH.
 
-OCR sonucu:
-{ocr_text}
+Example Good Response:
+"Gökyüzü oldukça açık ve güneşli görünüyor, etrafta hiç bulut yok. Yerdeki gölgelerden havanın aydınlık olduğu anlaşılıyor."
 
-Nesne tespiti:
-{detections}
-
-Kural:
-Görüntüde olmayan ayrıntı ekleme.
-""".strip(),
+User Question: {question}
+OCR Results: {ocr_text}
+YOLO Detections: {detections}
+        """.strip(),
     }
 
     def __init__(self):
@@ -168,7 +237,7 @@ Görüntüde olmayan ayrıntı ekleme.
         answer = self._generate(
             image_path=image_path,
             prompt=prompt,
-            max_new_tokens=180,
+            max_new_tokens=512,
         )
 
         return self._normalize_answer(answer)
@@ -176,22 +245,40 @@ Görüntüde olmayan ayrıntı ekleme.
     def _detect_intent(self, question: str) -> Intent:
         q = question.lower()
 
-        if any(x in q for x in ["ne yazıyor", "yazıyı oku", "metni oku", "okur musun", "yazı"]):
+        if any(x in q for x in [
+            "ne yazıyor", "yazıyı oku", "metni oku", "okur musun", "yazı",
+            "yazar ne", "ne yazılı", "burada ne var", "etikette ne",
+        ]):
             return "text"
 
-        if any(x in q for x in ["tabela", "levha", "işaret", "sembol", "uyarı", "anlama geliyor"]):
+        if any(x in q for x in [
+            "tabela", "levha", "işaret", "sembol", "uyarı", "anlama geliyor",
+            "ne diyor", "bu levha", "bu işaret", "trafik", "logo",
+        ]):
             return "sign"
 
-        if any(x in q for x in ["güvenli mi", "geçebilir miyim", "engel var mı", "tehlike", "yol açık mı", "önümde ne var"]):
+        if any(x in q for x in [
+            "güvenli mi", "geçebilir miyim", "engel var mı", "tehlike",
+            "yol açık mı", "önümde ne var", "yürüyebilir miyim",
+            "adım atsam", "geçiş var mı", "yolda ne var",
+        ]):
             return "navigation"
 
-        if any(x in q for x in ["bu ne", "şu ne", "nesne", "eşya", "ne işe yarar"]):
+        if any(x in q for x in [
+            "bu ne", "şu ne", "bu nedir", "şu nedir", "nesne", "eşya",
+            "ne işe yarar", "tanımlar mısın", "ne tutuyorum", "elimdeki",
+            "bu eşya", "bu ürün",
+        ]):
             return "object"
 
-        if any(x in q for x in ["anlat", "betimle", "neredeyim", "burası neresi", "ortam", "çevre", "sokak", "görüntüde ne var"]):
+        if any(x in q for x in [
+            "anlat", "betimle", "neredeyim", "burası neresi", "ortam",
+            "çevre", "sokak", "görüntüde ne var", "etrafı", "çevreyi",
+        ]):
             return "scene"
 
         return "general"
+
 
     def _build_prompt(
         self,
@@ -281,7 +368,9 @@ Görüntüde olmayan ayrıntı ekleme.
         if not detections:
             return ""
 
-        counter = Counter()
+        IMAGE_WIDTH = 640
+
+        summarized_items = []
 
         for item in detections:
             if not isinstance(item, dict):
@@ -301,20 +390,36 @@ Görüntüde olmayan ayrıntı ekleme.
                 or 1.0
             )
 
+            bbox = item.get("bbox")
+
             try:
                 confidence = float(confidence)
             except Exception:
                 confidence = 1.0
 
-            if label and confidence >= 0.35:
-                counter[str(label)] += 1
+            if not label or confidence < 0.35:
+                continue
 
-        if not counter:
+            position_text = ""
+            if bbox and len(bbox) == 4:
+                x1, _, x2, _ = bbox
+                center_x = (x1 + x2) / 2
+                if center_x < IMAGE_WIDTH * 0.33:
+                    position_text = " (sol tarafta)"
+                elif center_x > IMAGE_WIDTH * 0.66:
+                    position_text = " (sağ tarafta)"
+                else:
+                    position_text = " (tam karşıda/merkezde)"
+
+            summarized_items.append(f"{label}{position_text}")
+
+        if not summarized_items:
             return ""
 
+        counter = Counter(summarized_items)
         return ", ".join(
-            f"{count} adet {label}"
-            for label, count in counter.most_common(8)
+            f"{count} adet {item}"
+            for item, count in counter.most_common(8)
         )
 
     def _normalize_answer(self, text: str) -> str:
@@ -333,11 +438,13 @@ Görüntüde olmayan ayrıntı ekleme.
         text = re.sub(r"\s+", " ", text)
 
         text = re.sub(
-            r"^(cevap|yanıt|answer|output)\s*:\s*",
+            r"^(doğru cevap|cevap|yanıt|answer|output|sonuç|açıklama)\s*:\s*",
             "",
             text,
             flags=re.IGNORECASE,
         )
+
+        text = re.sub(r"^\d+\.\s*", "", text)
 
         return text.strip()
 
