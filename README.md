@@ -1,4 +1,5 @@
-# 👁️ Vision Assistant  
+# 👁️ Vision Assistant
+
 ### Görme Engelliler İçin Yapay Zeka Destekli Gerçek Zamanlı Görsel Asistan
 
 <p align="center">
@@ -17,12 +18,12 @@
 
 **Vision Assistant**, görme engelli ve az gören bireylerin çevrelerini daha bağımsız, güvenli ve erişilebilir şekilde algılayabilmelerini desteklemek amacıyla geliştirilmiş çok modlu bir yapay zeka destekli görsel asistan sistemidir.
 
-Sistem, kullanıcının yüklediği görselleri veya kamera tabanlı görüntüleri analiz ederek aşağıdaki çıktıları üretir:
+Sistem, kullanıcının web arayüzü üzerinden sağladığı **kamera görüntüsünü** ve **sesli sorusunu** birlikte analiz ederek aşağıdaki çıktıları üretir:
 
 - kısa ve anlaşılır sahne betimlemesi,
 - nesne ve olası engel farkındalığı,
 - görüntü üzerindeki metinlerin OCR ile okunması,
-- görsele dayalı soru-cevap,
+- görüntüye dayalı sesli soru-cevap,
 - sesli komut alma ve sesli yanıt üretme.
 
 Bu proje; **bilgisayarlı görü**, **görsel-dil modelleri**, **OCR**, **konuşma işleme** ve **modüler FastAPI backend mimarisini** modern bir web arayüzüyle birleştiren akademik bir prototip olarak geliştirilmiştir.
@@ -38,40 +39,48 @@ Görme engelli bireyler için geliştirilen birçok mevcut sistem sahne betimlem
 **Vision Assistant** projesinin amacı, aşağıdaki bileşenleri tek ve modüler bir sistem altında toplamaktır:
 
 - çevresel görüntü analizi,
-- nesne ve engel algılama,
+- nesne ve olası engel algılama,
 - sahne içi metin okuma,
 - görsel soru-cevap,
 - sesli kullanıcı etkileşimi,
 - API tabanlı genişletilebilir sistem mimarisi.
 
-Proje yalnızca görsel açıklama üretmeyi değil, kullanıcının sahne hakkında soru sorabildiği ve yanıtı sesli olarak alabildiği erişilebilir bir etkileşim akışı sunmayı hedefler.
+Proje yalnızca görsel açıklama üretmeyi değil, kullanıcının kamera görüntüsü hakkında **sesli soru sorabildiği** ve yanıtı yine **sesli olarak alabildiği** erişilebilir bir etkileşim akışı sunmayı hedefler.
 
 ---
 
 ## ✨ Özellikler
 
 ### 🧠 Görsel-Dil Modeli ile Sahne Anlama
-Qwen / MiniCPM tabanlı görsel-dil modeli altyapısı ile görüntüler analiz edilir ve kullanıcıya Türkçe, kısa, somut ve bağlama uygun yanıtlar üretilir.
+
+Qwen / MiniCPM tabanlı görsel-dil modeli altyapısı ile kamera görüntüleri analiz edilir ve kullanıcıya Türkçe, kısa, somut ve bağlama uygun yanıtlar üretilir.
 
 ### 🔎 Nesne Tespiti
+
 Ultralytics YOLO tabanlı nesne tespit altyapısı ile sahnedeki nesneler, çevresel öğeler ve potansiyel engeller algılanır.
 
 ### 📝 OCR ile Metin Okuma
+
 EasyOCR entegrasyonu sayesinde tabela, ekran, belge, kağıt veya görüntü üzerindeki metinler tespit edilerek okunabilir hale getirilir.
 
 ### 🎙️ Sesli Soru Alma
+
 Faster-Whisper kullanılarak kullanıcının sesli sorusu metne dönüştürülür.
 
 ### 🔊 Sesli Yanıt Üretme
+
 Edge-TTS ile modelin ürettiği yanıt ses dosyasına dönüştürülür ve kullanıcıya sesli geri bildirim olarak sunulur.
 
 ### 🧭 Skor Tabanlı Yönlendirme
-Gelen görsel ve kullanıcı isteğine göre sistem; OCR, nesne tespiti, sahne betimleme veya görsel soru-cevap akışlarından en uygun olanına yönlendirme yapabilir.
+
+Kamera görüntüsü ve kullanıcının sesli isteğine göre sistem; OCR, nesne tespiti, sahne betimleme veya görsel soru-cevap akışlarından en uygun olanına yönlendirme yapabilir.
 
 ### 🌐 Modern Web Arayüzü
-FastAPI üzerinden sunulan modern, kullanıcı dostu ve sade bir web arayüzü ile görsel ve sesli etkileşim desteklenir.
+
+FastAPI üzerinden sunulan sade ve kullanıcı dostu web arayüzü ile kamera ve mikrofon tabanlı etkileşim desteklenir. Kullanıcı arayüzü, ekran veya klavye bağımlılığını azaltacak şekilde sesli etkileşim odaklı tasarlanmıştır.
 
 ### 🧩 Modüler Backend Mimarisi
+
 Router, service, schema, config ve storage katmanlarına ayrılmış backend yapısı sayesinde sistem geliştirilebilir, sürdürülebilir ve genişletilebilir bir mimariye sahiptir.
 
 ---
@@ -81,7 +90,7 @@ Router, service, schema, config ve storage katmanlarına ayrılmış backend yap
 ```text
 Kullanıcı
  │
- │  Görsel / Kamera Görüntüsü / Sesli Soru
+ │  Kamera Görüntüsü + Sesli Soru
  ▼
 Web Arayüzü
  │
@@ -179,6 +188,7 @@ vision-assistant/
 │   └── outputs/
 │
 ├── requirements.txt
+├── requirements_runpod.txt
 ├── .gitignore
 └── README.md
 ```
@@ -212,8 +222,16 @@ source venv/bin/activate
 
 ### 3. Bağımlılıkları yükleyin
 
+Genel kurulum için:
+
 ```bash
 pip install -r requirements.txt
+```
+
+GPU destekli RunPod benzeri ortamlarda, CUDA uyumlu PyTorch kurulumu sonrasında aşağıdaki dosya kullanılabilir:
+
+```bash
+pip install -r requirements_runpod.txt
 ```
 
 > Görsel-dil modeli yüksek bellek gerektirebileceği için GPU destekli çalışma ortamı önerilir. Model boyutuna göre VRAM ihtiyacı değişebilir.
@@ -223,6 +241,12 @@ pip install -r requirements.txt
 ## ▶️ Uygulamayı Çalıştırma
 
 Proje kök dizinindeyken FastAPI sunucusunu başlatın:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Geliştirme sırasında otomatik yenileme için:
 
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -254,22 +278,26 @@ http://localhost:8000/health
 |---|---|---|
 | `GET` | `/` | Ana web arayüzünü döndürür |
 | `GET` | `/health` | API servisinin çalışıp çalışmadığını kontrol eder |
-| `POST` | `/analyze/image` | Görsel üzerinde genel analiz yapar |
-| `POST` | `/ask/image` | Yüklenen görsel hakkında yazılı soruyu yanıtlar |
-| `POST` | `/ask/voice` | Görsel ve sesli soruyu alır, sesli yanıt üretir |
+| `POST` | `/analyze/image` | Kamera görüntüsü veya görsel üzerinde genel analiz yapar |
+| `POST` | `/ask/voice` | Kamera görüntüsü ve sesli soruyu alır, analiz eder ve sesli yanıt üretir |
+| `POST` | `/ask/image` | API seviyesinde görsel ve metinsel soru ile görsel soru-cevap işlemi yapar |
+
+> Ana kullanıcı akışı kamera görüntüsü ve sesli soru üzerinden çalışır. `/ask/image` endpoint'i API seviyesinde desteklenen ek bir görsel soru-cevap servisidir.
 
 ---
 
 ## 🧪 Örnek Kullanım Akışı
 
 1. Kullanıcı web arayüzünü açar.
-2. Görsel yükler veya kamera görüntüsü sağlar.
-3. Sistem görsel içeriği analiz eder.
-4. Görselde metin varsa OCR ile okunur.
-5. Nesneler veya çevresel öğeler tespit edilir.
-6. Kullanıcı görsel hakkında yazılı veya sesli soru sorar.
-7. Görsel-dil modeli uygun yanıtı üretir.
-8. Yanıt metin ve/veya sesli çıktı olarak kullanıcıya sunulur.
+2. Sistem kamera ve mikrofon izinlerini ister.
+3. Kullanıcı kamera görüntüsünü sistemle paylaşır.
+4. Kullanıcı görüntü hakkında sesli soru sorar.
+5. Sesli soru STT bileşeni ile metne dönüştürülür.
+6. Sistem görüntüyü OCR, nesne tespiti ve görsel-dil modeli bileşenleriyle analiz eder.
+7. Görsel-dil modeli kullanıcı sorusuna uygun yanıt üretir.
+8. Üretilen yanıt TTS bileşeni ile sesli çıktıya dönüştürülür.
+9. Kullanıcı yanıtı sesli olarak dinler.
+10. Yanıt tamamlandıktan sonra kullanıcı yeni bir sesli soru sorabilir.
 
 ---
 
@@ -293,6 +321,7 @@ Proje aşağıdaki ölçütler üzerinden değerlendirilebilir:
 - GPU bellek ihtiyacı seçilen model boyutuna göre değişebilir.
 - Düşük ışık, bulanık görüntü ve karmaşık sahnelerde OCR doğruluğu azalabilir.
 - Küçük veya kısmen görünen nesneler nesne tespit modeli tarafından kaçırılabilir.
+- Sesli soru alma performansı ortam gürültüsünden etkilenebilir.
 - Bu prototip, ek güvenlik testleri yapılmadan kritik navigasyon cihazı olarak kullanılmamalıdır.
 
 ---
@@ -322,7 +351,7 @@ GitHub: `github.com/senanursenol`
 
 Bu çalışma; bilgisayarlı görü, doğal dil işleme ve konuşma teknolojilerinin erişilebilir yapay zeka sistemleri için bir araya getirilmesine odaklanmaktadır.
 
-Projenin temel katkısı, görme engelli bireylerin çevresel farkındalığını artırmaya yönelik modüler, çok modlu ve web tabanlı bir görsel asistan prototipi sunmasıdır.
+Projenin temel katkısı, görme engelli bireylerin çevresel farkındalığını artırmaya yönelik modüler, çok modlu, sesli etkileşim destekli ve web tabanlı bir görsel asistan prototipi sunmasıdır.
 
 ---
 
