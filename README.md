@@ -1,145 +1,94 @@
-# Vision Assistant
+👁️ Vision Assistant (Görme Engelliler İçin Görsel Yapay Zeka Asistanı)
+Vision Assistant, görme engelli ve az gören bireylerin günlük yaşamlarını kolaylaştırmak amacıyla geliştirilmiş, çok modlu (multimodal) yapay zeka destekli bir görsel asistan uygulamasıdır. Kullanıcıların yüklediği görselleri veya kamera görüntülerini analiz ederek sahne betimlemesi yapar, metinleri okur (OCR), nesneleri algılar ve kullanıcı ile sesli (Speech-to-Text & Text-to-Speech) etkileşime girer.
 
-AI-powered vision assistant system that analyzes images and videos by combining object detection (YOLO), OCR, and Vision-Language Models (VLM) with an intelligent routing mechanism.
+✨ Öne Çıkan Özellikler
+Görsel Dil Modeli (VLM) Entegrasyonu: Qwen2.5-VL tabanlı altyapı ile görselleri insan benzeri bir anlayışla analiz edip Türkçe ve duruma özel (somut, kısa) betimlemeler yapar.
 
----
+Sesli Etkileşim: faster-whisper ile kullanıcının sesli komutlarını yazıya döker (STT) ve edge-tts ile modelin cevaplarını doğal bir sesle kullanıcıya okur (TTS).
 
-## 🧠 Project Overview
+Optik Karakter Tanıma (OCR): EasyOCR entegrasyonu sayesinde görüntüdeki tabela, ekran veya kağıt üzerindeki metinleri tespit edip okur.
 
-This project aims to build a modular visual understanding system that can:
+Nesne Tespiti (Object Detection): Ultralytics altyapısı ile çevredeki eşyaları, engelleri veya araçları hızlıca tespit eder.
 
-- Detect objects using YOLO
-- Extract text using OCR
-- Decide whether advanced reasoning is required
-- Generate context-aware responses using Vision-Language Models (VLM)
+Modern Web Arayüzü: FastAPI tarafından sunulan, "Glassmorphism" ve modern "Soft-Gradient Mesh" tasarım diline sahip, kullanıcı dostu arayüz.
 
-The system is designed with a **score-based routing mechanism** to minimize unnecessary model usage and improve efficiency.
+Modüler API Mimarisi: Temiz kod (Clean Code) prensiplerine uygun olarak ayrılmış servisler (Yönlendirme, Ses, VLM, Analiz).
 
----
+🛠️ Kullanılan Teknolojiler
+Backend: FastAPI, Uvicorn, Python 3.10+
 
-## ⚙️ System Architecture
+Yapay Zeka & Derin Öğrenme: PyTorch (CUDA 12.1), Transformers, HuggingFace
 
-Pipeline:
+Görüntü İşleme & VLM: Qwen-VL-Utils, OpenCV, Pillow, Scikit-image
 
-Input Image / Video  
-↓  
-Object Detection (YOLO)  
-↓  
-OCR (EasyOCR)  
-↓  
-Score-based Routing  
-↙            ↘  
-Fast Response     VLM (Qwen / MiniCPM)  
-(Guidance)        (Deep Analysis)
+Ses & Metin (Speech): Faster-Whisper, Edge-TTS
 
----
+Veri & Performans: Polars, NumPy, Accelerate
 
-## 🧩 Features
+🚀 Kurulum
+Projeyi kendi bilgisayarında veya bir GPU sunucusunda çalıştırmak için aşağıdaki adımları izleyebilirsin.
 
-- Modular clean architecture
-- YOLO-based object detection
-- OCR text extraction
-- Intelligent routing system (no unnecessary VLM calls)
-- Extendable VLM integration (Qwen / MiniCPM)
-- Ready for image and video processing
+Ön Koşullar
+Python 3.10 veya üzeri
 
----
+NVIDIA GPU ve CUDA (CUDA 12.1 desteklenmektedir. VLM modelinin VRAM'e yüklenebilmesi için minimum 8GB+ VRAM önerilir.)
 
-## 🧠 Routing Logic
+1. Depoyu Klonlayın
+Bash
+git clone https://github.com/kullaniciadi/vision-assistant.git
+cd vision-assistant
 
-The system calculates a **complexity score** based on:
+2. Sanal Ortam Oluşturun ve Aktif Edin
+python -m venv venv
+# Windows için:
+venv\Scripts\activate
+# Linux/MacOS için:
+source venv/bin/activate
 
-- Number of detected objects
-- Object diversity
-- Detection confidence
-- OCR presence
-
-If the score exceeds a threshold, the request is forwarded to a VLM; otherwise, a lightweight response is generated.
-
----
-
-## 📊 Model Evaluation
-
-Two Vision-Language Models are evaluated:
-
-- Qwen2.5-VL-3B-Instruct
-- MiniCPM-V-4.5
-
-### Evaluation Criteria
-
-Each model is scored based on:
-
-- Semantic Understanding (0–2)
-- Task Relevance (0–2)
-- Stability (0–2)
-- Explanation Quality (0–2)
-
-Total score per sample: **8 points**
-
-Latency is also recorded for performance comparison.
-
----
-
-## 🛠️ Tech Stack
-
-- Python
-- FastAPI
-- YOLOv8 (Ultralytics)
-- EasyOCR
-- Transformers (for VLM integration)
-
----
-
-## 📁 Project Structure
-
-app/  
-  api/  
-  services/  
-  core/  
-  domain/  
-
-data/  
-scripts/  
-tests/  
-
----
-
-## 🚀 Getting Started
-
-### 1. Create virtual environment
-
-python -m venv .venv
-
-### 2. Activate environment
-
-.venv\Scripts\activate
-
-### 3. Install dependencies
-
+3. Bağımlılıkları Yükleyin
+PyTorch GPU sürümü de dahil olmak üzere gerekli tüm paketleri kurmak için:
 pip install -r requirements.txt
 
-### 4. Run API
+💻 Kullanım
+Uygulamayı başlatmak için terminalde proje kök dizinindeyken aşağıdaki komutu çalıştırın:
+python -m app.main
 
-uvicorn app.main:app --reload
+Sistem Başlatma Süreci:
+API ayağa kalkarken VLM modeli otomatik olarak GPU VRAM'ine yüklenecektir. Konsolda şu mesajları göreceksiniz:
 
----
+🚀 Sistem başlatılıyor: VLM Modeli GPU'ya yükleniyor (Lütfen bekleyin)...
+✅ Model başarıyla VRAM'e yüklendi! Sistem isteklere hazır.
 
-## 🔮 Future Work
+Sistem hazır olduğunda tarayıcınızdan http://localhost:8000 adresine giderek modern web arayüzüne erişebilirsiniz.
 
-- Full VLM integration (Qwen / MiniCPM)
-- Video processing pipeline
-- Dynamic model routing
-- Performance optimization with GPU
-- Real-time inference
+📡 API Uç Noktaları (Endpoints)
+FastAPI otomatik dokümantasyonuna ulaşmak için uygulama çalışırken http://localhost:8000/docs adresini ziyaret edebilirsiniz.
 
----
+GET /: Ana web arayüzünü (HTML) döndürür.
+GET /api/health: Sistem durumunu ve modelin yüklenip yüklenmediğini kontrol eder.
+POST /api/analyze-image: Verilen görseli genel olarak analiz eder (Sahne, metin, nesne).
+POST /api/ask-image: Görsel ile birlikte kullanıcıdan gelen spesifik yazılı soruyu yanıtlar.
+POST /api/ask-voice: Kullanıcıdan alınan ses kaydını (STT) metne çevirir, VLM'e sorar ve yanıtı ses dosyası (TTS) olarak döndürür.
 
-## 📌 Notes
+📂 Proje Yapısı
+vision-assistant/
+├── app/
+│   ├── api/
+│   │   └── routers/ (analyze_image.py, ask_image.py, ask_voice.py, vb.)
+│   ├── core/ (config.py - Ortam ve ayar değişkenleri)
+│   ├── domain/ (Pydantic şemaları)
+│   ├── infra/ (Depolama, dosya yönetimi vb.)
+│   ├── services/ (vlm_service, stt_service, tts_service, ocr_service vb.)
+│   ├── static/ (Web arayüzü dosyaları - index.html)
+│   └── main.py (FastAPI uygulaması başlangıç noktası)
+├── data/
+│   └── outputs/ (Üretilen ses dosyaları veya geçici analiz çıktıları)
+├── requirements.txt
+└── README.md
 
-This project is developed as a graduation thesis focusing on efficient multimodal AI systems and intelligent model usage.
+📝 Lisans ve Atıf
+Bu proje bir bitirme tezi projesi olarak geliştirilmiştir. Kapsamında kullanılan açık kaynaklı modellerin (Qwen, Faster-Whisper vb.) lisans koşulları geçerlidir.
 
----
 
-## 👩‍💻 Author
 
-Senanur Şenol
+
